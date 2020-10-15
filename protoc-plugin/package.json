@@ -7,6 +7,7 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "protoc:compile": "protoc --experimental_allow_proto3_optional --plugin=../protoc-plugin/protoc-gen-ts_proto.cmd --ts_proto_out=. --ts_proto_opt=protos_dir=../protos -I ../protos ../protos/*.proto",
+    "lint": "eslint src",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
