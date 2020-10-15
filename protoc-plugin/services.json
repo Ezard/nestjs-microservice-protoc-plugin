@@ -1,0 +1,14 @@
+{
+  "backend": {
+    "rootDir": "../backend"
+  },
+  "frontend-admin": {
+    "rootDir": "../frontend-admin"
+  },
+  "frontend-brand": {
+    "rootDir": "../frontend-brand"
+  },
+  "frontend-candidate": {
+    "rootDir": "../frontend-candidate"
+  }
+}
