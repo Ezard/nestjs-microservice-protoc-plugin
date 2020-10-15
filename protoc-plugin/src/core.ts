@@ -9,11 +9,6 @@ export function log(str: unknown) {
   appendFileSync(LOG, Buffer.from(`${JSON.stringify(str)}\n`));
 }
 
-export function prefixDisableLinter(fileContents: string): string {
-  return `/* eslint-disable */
-${fileContents}`;
-}
-
 export class Service {
   readonly generatedDir: string;
   readonly protosDir: string;

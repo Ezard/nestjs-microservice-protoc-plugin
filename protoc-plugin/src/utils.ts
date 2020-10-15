@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { code, Code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
-import { prefixDisableLinter, Service } from './core';
+import { Service } from './core';
 import { getImpFromTypeName, TypeMap } from './types';
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
@@ -80,4 +80,9 @@ export function mkdirs(path: string): void {
     mkdirs(join(path, '..'));
     mkdirSync(path);
   }
+}
+
+export function prefixDisableLinter(fileContents: string): string {
+  return `/* eslint-disable */
+${fileContents}`;
 }
