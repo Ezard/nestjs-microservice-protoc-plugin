@@ -18,7 +18,9 @@ function generateGrpcMethods({ name, method }: ServiceDescriptorProto): Code {
             ${GrpcMethod}('${name}', method)(constructor.prototype[method], method, descriptor);
           }
         `;
-  } else return code``;
+  } else {
+    return code``;
+  }
 }
 
 function generateBackendService(serviceDescriptorProto: ServiceDescriptorProto, typeMap: TypeMap): Code {
