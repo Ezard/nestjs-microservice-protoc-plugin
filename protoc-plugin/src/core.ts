@@ -29,8 +29,8 @@ export interface Services {
   [key: string]: Service;
 }
 
-export function loadServices(): Services {
-  const data = JSON.parse(readFileSync('services.json', { encoding: 'utf-8' })) as { [s: string]: { rootDir: string } };
+export function loadServices(filePath: string): Services {
+  const data = JSON.parse(readFileSync(filePath, { encoding: 'utf-8' })) as { [s: string]: { rootDir: string } };
   const services = {} as Services;
   for (const [key, value] of Object.entries(data)) {
     services[key] = Object.assign(new Service(value.rootDir));
@@ -41,7 +41,7 @@ export function loadServices(): Services {
 export function determineServices(
   fileDescriptorProto: FileDescriptorProto,
 ): { backendServices: Service[]; frontendServices: Service[] } {
-  const services = loadServices();
+  const services = loadServices('services.json');
   const leadingDetachedComments =
     fileDescriptorProto.sourceCodeInfo?.location?.flatMap(location => location.leadingDetachedComments) ?? [];
   if (leadingDetachedComments.length > 0) {
