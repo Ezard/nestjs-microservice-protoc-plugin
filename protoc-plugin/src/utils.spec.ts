@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, rmdirSync } from 'fs';
 import { PassThrough } from 'stream';
 import { code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
+import { trimPadding } from '../test/utils';
 import { TypeMap } from './types';
 import { combineCode, getMethodDefinition, mkdirs, prefixDisableLinter, readToBuffer } from './utils';
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
@@ -10,21 +11,6 @@ import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 jest.mock('./types', () => ({
   getImpFromTypeName: (typeMap: TypeMap, typeName: string) => code`${typeName}`,
 }));
-
-function trimPadding(input: string): string {
-  const lines = input.split(/\r?\n/);
-  const firstNonEmptyLine = lines.find(line => !/^\s*$/.test(line));
-  if (firstNonEmptyLine) {
-    const startPaddingMatches = firstNonEmptyLine.match(/^(\s*)/);
-    if (startPaddingMatches && startPaddingMatches.length >= 2) {
-      return lines.map(line => line.replace(new RegExp(`${startPaddingMatches[1]}`), '')).join('\n');
-    } else {
-      return input;
-    }
-  } else {
-    return input;
-  }
-}
 
 describe('utils', () => {
   describe('readToBuffer', () => {
