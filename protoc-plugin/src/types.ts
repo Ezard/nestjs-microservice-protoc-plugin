@@ -26,8 +26,11 @@ export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): Ty
 }
 
 export function getImpFromTypeName(typeMap: TypeMap, typeName: string): Code {
-  const { type, relativePath } = typeMap.get(typeName)!;
-  return code`${imp(`${type}@./${relativePath}`)}`;
+  const result = typeMap.get(typeName);
+  if (!result) {
+    throw new Error(`Type '${typeName}' was not found in the type map`);
+  }
+  return code`${imp(`${result.type}@./${result.relativePath}`)}`;
 }
 
 function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap): string | Code {
