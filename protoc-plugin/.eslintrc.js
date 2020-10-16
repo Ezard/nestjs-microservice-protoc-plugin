@@ -1,4 +1,6 @@
+const parent = require('../.eslintrc.js');
+
 module.exports = {
-  ...require('../.eslintrc.js'),
-  plugins: [...require('../.eslintrc.js').plugins, 'jest'],
+  ...parent,
+  plugins: [...parent.plugins, 'jest'],
 };
