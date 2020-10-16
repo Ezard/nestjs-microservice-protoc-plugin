@@ -41,6 +41,7 @@ describe('utils', () => {
 
   describe('createCodeGeneratorResponseFile', () => {
     const rootDir = 'createCodeGeneratorResponseFile-test';
+    const fileName = 'protos/foo.proto';
     let service: Service;
 
     beforeEach(() => {
@@ -62,7 +63,7 @@ describe('utils', () => {
       const result = await createCodeGeneratorResponseFile(
         service,
         new FileDescriptorProto({
-          name: 'protos/foo.proto',
+          name: fileName,
           package: 'foo',
         }),
         type,
@@ -82,7 +83,7 @@ describe('utils', () => {
       const result = await createCodeGeneratorResponseFile(
         service,
         new FileDescriptorProto({
-          name: 'protos/foo.proto',
+          name: fileName,
           package: 'foo',
         }),
         'frontend',
@@ -110,7 +111,7 @@ describe('utils', () => {
         const result = await createCodeGeneratorResponseFile(
           service,
           new FileDescriptorProto({
-            name: 'protos/foo.proto',
+            name: fileName,
             package: packageName,
           }),
           'frontend',
