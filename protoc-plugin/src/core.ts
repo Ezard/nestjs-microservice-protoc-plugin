@@ -5,7 +5,7 @@ import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 export const LOG = './log.txt';
 
-export function log(str: unknown) {
+export function log(str: unknown): void {
   appendFileSync(LOG, Buffer.from(`${JSON.stringify(str)}\n`));
 }
 
