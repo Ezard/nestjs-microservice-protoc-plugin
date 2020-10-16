@@ -1,0 +1,93 @@
+import { existsSync, mkdirSync, rmdirSync } from 'fs';
+import { code } from 'ts-poet';
+import { google } from 'ts-proto/build/pbjs';
+import { TypeMap } from './types';
+import { getMethodDefinition, mkdirs, prefixDisableLinter } from './utils';
+import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
+
+// noinspection JSUnusedGlobalSymbols
+jest.mock('./types', () => ({
+  getImpFromTypeName: (typeMap: TypeMap, typeName: string) => code`${typeName}`,
+}));
+
+describe('utils', () => {
+  describe('getMethodDefinition', () => {
+    it('should render based on the provided input and output', () => {
+      // use code.toString()
+      const name = 'Foo';
+      const inputType = 'Bar';
+      const outputType = 'Baz';
+      const methodDescriptorProto = new MethodDescriptorProto({
+        name,
+        inputType,
+        outputType,
+        clientStreaming: false,
+        serverStreaming: false,
+      });
+      const typeMap: TypeMap = new Map();
+
+      const result = getMethodDefinition(methodDescriptorProto, typeMap);
+
+      const stringResult = result.toString();
+      const stringResultWithoutPadding = stringResult
+        .split(/\r\n?|\n/)
+        .map(line => line.trim())
+        .join('\n');
+
+      const expected = `Foo(request: Bar): Baz
+                    | Promise<Baz>
+                    | Observable<Baz>`;
+      const expectedWithoutPadding = expected
+        .split(/\r\n?|\n/)
+        .map(line => line.trim())
+        .join('\n');
+
+      expect(stringResultWithoutPadding).toEqual(expectedWithoutPadding);
+    });
+  });
+
+  describe('mkdirs', () => {
+    const dirs = ['utils-mkdirs-test', 'foo', 'bar', 'baz'];
+    const path = dirs.join('/');
+
+    afterEach(() => {
+      dirs.map((dir, index) => dirs.slice(0, dirs.length - index).join('/')).forEach(dir => rmdirSync(dir));
+    });
+
+    it('should should create all directories if none exist', () => {
+      mkdirs(path);
+
+      expect(existsSync(path)).toBe(true);
+    });
+
+    it('should create non-existent directories if some exist', () => {
+      for (let i = 0; i < 2; i++) {
+        mkdirSync(dirs.slice(0, i + 1).join('/'));
+      }
+
+      mkdirs(path);
+
+      expect(existsSync(path)).toBe(true);
+    });
+
+    it('should not create any directories if they all exist', () => {
+      for (let i = 0; i < dirs.length; i++) {
+        mkdirSync(dirs.slice(0, i + 1).join('/'));
+      }
+
+      mkdirs(path);
+
+      expect(existsSync(path)).toBe(true);
+    });
+  });
+
+  describe('prefixDisableLinter', () => {
+    it('should should prefix the provided string with a comment to disable ESLint', () => {
+      const input = `class Test {}`;
+
+      const result = prefixDisableLinter(input);
+
+      expect(result.startsWith(`/* eslint-disable */\n`)).toBe(true);
+    });
+  });
+});
