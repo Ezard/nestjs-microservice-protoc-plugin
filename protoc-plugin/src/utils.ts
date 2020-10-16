@@ -7,20 +7,17 @@ import { getImpFromTypeName, TypeMap } from './types';
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
-import ReadStream = NodeJS.ReadStream;
+import ReadableStream = NodeJS.ReadableStream;
 
 const Observable = imp('Observable@rxjs');
 
-export function readToBuffer(stream: ReadStream): Promise<Buffer> {
+export function readToBuffer(stream: ReadableStream): Promise<Buffer> {
   return new Promise(resolve => {
     const ret: Array<Buffer> = [];
     let len = 0;
-    stream.on('readable', () => {
-      let chunk;
-      while ((chunk = stream.read())) {
-        ret.push(chunk);
-        len += chunk.length;
-      }
+    stream.on('data', (data: Buffer) => {
+      ret.push(data);
+      len += data.length;
     });
     stream.on('end', () => {
       resolve(Buffer.concat(ret, len));

@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, rmdirSync } from 'fs';
+import { PassThrough } from 'stream';
 import { code } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
 import { TypeMap } from './types';
-import { getMethodDefinition, mkdirs, prefixDisableLinter } from './utils';
+import { getMethodDefinition, mkdirs, prefixDisableLinter, readToBuffer } from './utils';
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 
 // noinspection JSUnusedGlobalSymbols
@@ -11,6 +12,23 @@ jest.mock('./types', () => ({
 }));
 
 describe('utils', () => {
+  describe('readToBuffer', () => {
+    it('should return the contents of the stream as a buffer', async () => {
+      const stream = new PassThrough();
+      const data = Buffer.from('Foo\nBar\nBaz', 'utf-8');
+
+      process.nextTick(() => {
+        stream.emit('data', data);
+        stream.end();
+        stream.destroy();
+      });
+
+      const result = await readToBuffer(stream);
+
+      expect(result).toEqual(data);
+    });
+  });
+
   describe('getMethodDefinition', () => {
     it('should render based on the provided input and output', () => {
       // use code.toString()
