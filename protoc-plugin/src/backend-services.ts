@@ -9,9 +9,9 @@ import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
 
 const GrpcMethod = imp('GrpcMethod@@nestjs/microservices');
 
-function generateGrpcMethods({ name, method }: ServiceDescriptorProto): Code {
-  if (method.length > 0) {
-    const methodNames = method.map(method => `'${method.name}'`).join(', ');
+function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto): Code {
+  if (methods.length > 0) {
+    const methodNames = methods.map(method => `'${method.name}'`).join(', ');
     return code`
           const grpcMethods: string[] = [${methodNames}];
           for (const method of grpcMethods) {
@@ -42,8 +42,8 @@ export async function generateBackendContent(
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
 ): Promise<CodeGeneratorResponse.File> {
-  const code = fileDescriptorProto.service
+  const codeContent = fileDescriptorProto.service
     .map(serviceDescriptorProto => generateBackendService(serviceDescriptorProto, typeMap))
     .reduce(combineCode);
-  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'backend', code);
+  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'backend', codeContent);
 }

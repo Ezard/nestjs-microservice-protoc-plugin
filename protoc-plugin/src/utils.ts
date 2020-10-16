@@ -31,7 +31,7 @@ export async function createCodeGeneratorResponseFile(
   service: Service,
   fileDescriptorProto: FileDescriptorProto,
   type: 'types' | 'backend' | 'frontend',
-  code: Code,
+  codeContent: Code,
 ): Promise<CodeGeneratorResponse.File> {
   const directory = fileDescriptorProto.package.replace('.', '/');
   const fileName = `${fileDescriptorProto.name.replace('protos/', '').replace('.proto', '')}.${type}.ts`;
@@ -39,7 +39,9 @@ export async function createCodeGeneratorResponseFile(
   const fullPath = normalize(join(service.generatedDir, relativePath));
   return new CodeGeneratorResponse.File({
     name: fullPath,
-    content: prefixDisableLinter(await code.toStringWithImports(relativePath.substr(0, relativePath.length - 3))),
+    content: prefixDisableLinter(
+      await codeContent.toStringWithImports(relativePath.substr(0, relativePath.length - 3)),
+    ),
   });
 }
 

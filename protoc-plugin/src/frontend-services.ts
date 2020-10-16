@@ -44,10 +44,10 @@ export async function generateFrontendContent(
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
 ): Promise<CodeGeneratorResponse.File> {
-  const code = fileDescriptorProto.service
+  const codeContent = fileDescriptorProto.service
     .map(serviceDescriptorProto =>
       generateFrontendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap),
     )
     .reduce(combineCode);
-  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'frontend', code);
+  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'frontend', codeContent);
 }

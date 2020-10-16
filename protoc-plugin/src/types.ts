@@ -109,6 +109,6 @@ export async function generateTypesContent(
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
 ): Promise<CodeGeneratorResponse.File> {
-  const code = generateMessageInterfaces(service, fileDescriptorProto.messageType, typeMap);
-  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'types', code);
+  const codeContent = generateMessageInterfaces(service, fileDescriptorProto.messageType, typeMap);
+  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'types', codeContent);
 }
