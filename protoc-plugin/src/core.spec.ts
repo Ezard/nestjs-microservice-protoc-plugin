@@ -1,5 +1,5 @@
-import {existsSync, rmdirSync, unlinkSync, writeFileSync} from 'fs';
-import {loadServices, Service} from './core';
+import { existsSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { loadServices, Service } from './core';
 
 describe('core', () => {
   describe('Service', () => {
@@ -47,11 +47,11 @@ describe('core', () => {
       const barRootDir = '../bar';
       const services = {
         foo: {
-          rootDir: fooRootDir
+          rootDir: fooRootDir,
         },
         bar: {
-          rootDir: barRootDir
-        }
+          rootDir: barRootDir,
+        },
       };
       writeFileSync(filePath, JSON.stringify(services));
 

@@ -9,10 +9,18 @@ import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
 
-const ClientProviderOptions = imp('ClientProviderOptions@@nestjs/microservices/module/interfaces/clients-module.interface');
+const ClientProviderOptions = imp(
+  'ClientProviderOptions@@nestjs/microservices/module/interfaces/clients-module.interface',
+);
 const Transport = imp('Transport@@nestjs/microservices');
 
-function generateFrontendService(service: Service, srcProtosDir: string, fileDescriptorProto: FileDescriptorProto, serviceDescriptorProto: ServiceDescriptorProto, typeMap: TypeMap): Code {
+function generateFrontendService(
+  service: Service,
+  srcProtosDir: string,
+  fileDescriptorProto: FileDescriptorProto,
+  serviceDescriptorProto: ServiceDescriptorProto,
+  typeMap: TypeMap,
+): Code {
   copyFileSync(join(srcProtosDir, fileDescriptorProto.name), join(service.protosDir, fileDescriptorProto.name));
   return code`
       export const ${serviceDescriptorProto.name}ClientProviderOptions: ${ClientProviderOptions} = {
@@ -30,9 +38,16 @@ function generateFrontendService(service: Service, srcProtosDir: string, fileDes
     `;
 }
 
-export async function generateFrontendContent(service: Service, protosDir: string, fileDescriptorProto: FileDescriptorProto, typeMap: TypeMap): Promise<CodeGeneratorResponse.File> {
+export async function generateFrontendContent(
+  service: Service,
+  protosDir: string,
+  fileDescriptorProto: FileDescriptorProto,
+  typeMap: TypeMap,
+): Promise<CodeGeneratorResponse.File> {
   const code = fileDescriptorProto.service
-    .map(serviceDescriptorProto => generateFrontendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap))
+    .map(serviceDescriptorProto =>
+      generateFrontendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap),
+    )
     .reduce(combineCode);
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'frontend', code);
 }

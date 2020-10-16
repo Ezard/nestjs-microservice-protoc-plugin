@@ -36,7 +36,11 @@ export function ${serviceDescriptorProto.name}ControllerMethods() {
 }`;
 }
 
-export async function generateBackendContent(service: Service, fileDescriptorProto: FileDescriptorProto, typeMap: TypeMap): Promise<CodeGeneratorResponse.File> {
+export async function generateBackendContent(
+  service: Service,
+  fileDescriptorProto: FileDescriptorProto,
+  typeMap: TypeMap,
+): Promise<CodeGeneratorResponse.File> {
   const code = fileDescriptorProto.service
     .map(serviceDescriptorProto => generateBackendService(serviceDescriptorProto, typeMap))
     .reduce(combineCode);

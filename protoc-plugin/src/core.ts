@@ -1,6 +1,6 @@
 import { appendFileSync, existsSync, readFileSync } from 'fs';
 import { google } from 'ts-proto/build/pbjs';
-import {mkdirs} from './utils';
+import { mkdirs } from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 export const LOG = './log.txt';

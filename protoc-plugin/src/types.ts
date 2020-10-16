@@ -9,19 +9,20 @@ import Label = google.protobuf.FieldDescriptorProto.Label;
 import Type = google.protobuf.FieldDescriptorProto.Type;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
-export type TypeMap = Map<string, { type: string, relativePath: string }>;
+export type TypeMap = Map<string, { type: string; relativePath: string }>;
 
 export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): TypeMap {
   return new Map(
-    fileDescriptorProtos
-      .flatMap(fileDescriptorProto => fileDescriptorProto.messageType.map(messageType => {
+    fileDescriptorProtos.flatMap(fileDescriptorProto =>
+      fileDescriptorProto.messageType.map(messageType => {
         const packageName = fileDescriptorProto.package;
         const type = messageType.name;
         const relativePath = `${packageName.replace('.', '/')}/${fileDescriptorProto.name.replace('.proto', '')}.types`;
         const key = `.${packageName}.${type}`;
         const value = { type, relativePath };
         return [key, value];
-      })),
+      }),
+    ),
   );
 }
 
@@ -91,8 +92,9 @@ function generateFields(service: Service, messageType: DescriptorProto, typeMap:
 
 function generateMessageInterfaces(service: Service, messageTypes: DescriptorProto[], typeMap: TypeMap): Code {
   return messageTypes
-    .map(messageType =>
-      code`
+    .map(
+      messageType =>
+        code`
               export interface ${messageType.name} {
                 ${generateFields(service, messageType, typeMap)}
               }
@@ -101,7 +103,11 @@ function generateMessageInterfaces(service: Service, messageTypes: DescriptorPro
     .reduce(combineCode);
 }
 
-export async function generateTypesContent(service: Service, fileDescriptorProto: FileDescriptorProto, typeMap: TypeMap): Promise<CodeGeneratorResponse.File> {
+export async function generateTypesContent(
+  service: Service,
+  fileDescriptorProto: FileDescriptorProto,
+  typeMap: TypeMap,
+): Promise<CodeGeneratorResponse.File> {
   const code = generateMessageInterfaces(service, fileDescriptorProto.messageType, typeMap);
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'types', code);
 }
