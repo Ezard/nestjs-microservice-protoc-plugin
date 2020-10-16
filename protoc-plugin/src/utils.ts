@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { util } from 'protobufjs';
 import { code, Code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
 import { Service } from './core';
@@ -8,6 +9,7 @@ import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 import ReadableStream = NodeJS.ReadableStream;
+import normalize = util.path.normalize;
 
 const Observable = imp('Observable@rxjs');
 
@@ -32,13 +34,14 @@ export async function createCodeGeneratorResponseFile(
   code: Code,
 ): Promise<CodeGeneratorResponse.File> {
   const directory = fileDescriptorProto.package.replace('.', '/');
-  const relativePath = `${directory}/${fileDescriptorProto.name
-    .replace('protos/', '')
-    .replace('.proto', '')}.${type}.ts`;
-  const path = `${service.generatedDir}${relativePath}`;
+  const fileName = `${fileDescriptorProto.name.replace('protos/', '').replace('.proto', '')}.${type}.ts`;
+  const relativePath = normalize(join(directory, fileName));
+  const fullPath = normalize(join(service.generatedDir, relativePath));
   return new CodeGeneratorResponse.File({
-    name: path,
-    content: prefixDisableLinter(await code.toStringWithImports(relativePath.substr(0, relativePath.length - 3))),
+    name: fullPath,
+    content: prefixDisableLinter(
+      await code.toStringWithImports(relativePath.substr(0, relativePath.length - 3)),
+    ),
   });
 }
 
