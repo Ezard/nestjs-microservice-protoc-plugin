@@ -31,7 +31,8 @@ export function getImpFromTypeName(typeMap: TypeMap, typeName: string): Code {
   if (!result) {
     throw new Error(`Type '${typeName}' was not found in the type map`);
   }
-  return code`${imp(`${result.type}@./${result.relativePath}`)}`;
+  const importStatement = imp(`${result.type}@./${result.relativePath}`);
+  return code`${importStatement}`;
 }
 
 function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap): string | Code {

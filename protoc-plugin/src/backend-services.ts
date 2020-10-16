@@ -11,8 +11,9 @@ const GrpcMethod = imp('GrpcMethod@@nestjs/microservices');
 
 function generateGrpcMethods({ name, method }: ServiceDescriptorProto): Code {
   if (method.length > 0) {
+    const methodNames = method.map(method => `'${method.name}'`).join(', ');
     return code`
-          const grpcMethods: string[] = [${method.map(method => `'${method.name}'`).join(', ')}];
+          const grpcMethods: string[] = [${methodNames}];
           for (const method of grpcMethods) {
             const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
             ${GrpcMethod}('${name}', method)(constructor.prototype[method], method, descriptor);
