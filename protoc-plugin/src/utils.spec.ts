@@ -3,8 +3,17 @@ import { PassThrough } from 'stream';
 import { code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
 import { trimPadding } from '../test/utils';
+import { Service } from './core';
 import { TypeMap } from './types';
-import { combineCode, getMethodDefinition, mkdirs, prefixDisableLinter, readToBuffer } from './utils';
+import {
+  combineCode,
+  createCodeGeneratorResponseFile,
+  getMethodDefinition,
+  mkdirs,
+  prefixDisableLinter,
+  readToBuffer,
+} from './utils';
+import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 
 // noinspection JSUnusedGlobalSymbols
@@ -27,6 +36,74 @@ describe('utils', () => {
       const result = await readToBuffer(stream);
 
       expect(result).toEqual(data);
+    });
+  });
+
+  describe('createCodeGeneratorResponseFile', () => {
+    it.each`
+      type
+      ${'types'}
+      ${'backend'}
+      ${'frontend'}
+    `('should use .$type.ts as the file extension when the type is $type', async ({ type }) => {
+      const result = await createCodeGeneratorResponseFile(
+        new Service(''),
+        new FileDescriptorProto({
+          name: 'protos/foo.proto',
+          package: 'foo',
+        }),
+        type,
+        code``,
+      );
+
+      expect(result.name.endsWith(`.${type}.ts`)).toBe(true);
+    });
+
+    it('should prefix code content with a comment to disable ESLint', async () => {
+      const codeContent = code`
+        class Foo {}
+
+        const bar: ${imp('Baz@./baz')}
+      `;
+
+      const result = await createCodeGeneratorResponseFile(
+        new Service(''),
+        new FileDescriptorProto({
+          name: 'protos/foo.proto',
+          package: 'foo',
+        }),
+        'frontend',
+        codeContent,
+      );
+      const lines = result.content.split(/\r\n?|\n/);
+
+      expect(lines[0]).toEqual('/* eslint-disable */');
+    });
+
+    it.each`
+      packageName   | importPath
+      ${''}         | ${'./baz'}
+      ${'foo'}      | ${'../baz'}
+      ${'foo.bar'}  | ${'../../baz'}
+    `('should use \'$importPath\' as the import path when the package is \'$packageName\'', async ({packageName, importPath}) => {
+      const codeContent = code`
+        class Foo {}
+
+        const bar: ${imp('Baz@./baz')}
+      `;
+
+      const result = await createCodeGeneratorResponseFile(
+        new Service(''),
+        new FileDescriptorProto({
+          name: 'protos/foo.proto',
+          package: packageName,
+        }),
+        'frontend',
+        codeContent,
+      );
+      const lines = result.content.split(/\r\n?|\n/);
+
+      expect(lines[1]).toEqual(`import { Baz } from '${importPath}';`);
     });
   });
 
