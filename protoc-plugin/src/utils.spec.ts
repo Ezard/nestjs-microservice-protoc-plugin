@@ -40,6 +40,19 @@ describe('utils', () => {
   });
 
   describe('createCodeGeneratorResponseFile', () => {
+    const rootDir = 'createCodeGeneratorResponseFile-test';
+    let service: Service;
+
+    beforeEach(() => {
+      service = new Service(rootDir);
+    });
+
+    afterEach(() => {
+      rmdirSync(service.generatedDir);
+      rmdirSync(service.protosDir);
+      rmdirSync(rootDir);
+    });
+
     it.each`
       type
       ${'types'}
@@ -47,7 +60,7 @@ describe('utils', () => {
       ${'frontend'}
     `('should use .$type.ts as the file extension when the type is $type', async ({ type }) => {
       const result = await createCodeGeneratorResponseFile(
-        new Service(''),
+        service,
         new FileDescriptorProto({
           name: 'protos/foo.proto',
           package: 'foo',
@@ -67,7 +80,7 @@ describe('utils', () => {
       `;
 
       const result = await createCodeGeneratorResponseFile(
-        new Service(''),
+        service,
         new FileDescriptorProto({
           name: 'protos/foo.proto',
           package: 'foo',
@@ -81,30 +94,33 @@ describe('utils', () => {
     });
 
     it.each`
-      packageName   | importPath
-      ${''}         | ${'./baz'}
-      ${'foo'}      | ${'../baz'}
-      ${'foo.bar'}  | ${'../../baz'}
-    `('should use \'$importPath\' as the import path when the package is \'$packageName\'', async ({packageName, importPath}) => {
-      const codeContent = code`
+      packageName  | importPath
+      ${''}        | ${'./baz'}
+      ${'foo'}     | ${'../baz'}
+      ${'foo.bar'} | ${'../../baz'}
+    `(
+      "should use '$importPath' as the import path when the package is '$packageName'",
+      async ({ packageName, importPath }) => {
+        const codeContent = code`
         class Foo {}
 
         const bar: ${imp('Baz@./baz')}
       `;
 
-      const result = await createCodeGeneratorResponseFile(
-        new Service(''),
-        new FileDescriptorProto({
-          name: 'protos/foo.proto',
-          package: packageName,
-        }),
-        'frontend',
-        codeContent,
-      );
-      const lines = result.content.split(/\r\n?|\n/);
+        const result = await createCodeGeneratorResponseFile(
+          service,
+          new FileDescriptorProto({
+            name: 'protos/foo.proto',
+            package: packageName,
+          }),
+          'frontend',
+          codeContent,
+        );
+        const lines = result.content.split(/\r\n?|\n/);
 
-      expect(lines[1]).toEqual(`import { Baz } from '${importPath}';`);
-    });
+        expect(lines[1]).toEqual(`import { Baz } from '${importPath}';`);
+      },
+    );
   });
 
   describe('combineCode', () => {

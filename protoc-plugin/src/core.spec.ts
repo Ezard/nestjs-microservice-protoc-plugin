@@ -63,6 +63,12 @@ describe('core', () => {
       expect(result['bar'].generatedDir).toEqual(`${barRootDir}/generated/`);
 
       unlinkSync(filePath);
+      rmdirSync(result['foo'].generatedDir);
+      rmdirSync(result['foo'].protosDir);
+      rmdirSync(fooRootDir);
+      rmdirSync(result['bar'].generatedDir);
+      rmdirSync(result['bar'].protosDir);
+      rmdirSync(barRootDir);
     });
   });
 });
