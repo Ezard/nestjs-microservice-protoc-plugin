@@ -1,5 +1,5 @@
-import {existsSync, rmdirSync} from 'fs';
-import {Service} from './core';
+import {existsSync, rmdirSync, unlinkSync, writeFileSync} from 'fs';
+import {loadServices, Service} from './core';
 
 describe('core', () => {
   describe('Service', () => {
@@ -37,6 +37,32 @@ describe('core', () => {
 
       const dirExists = existsSync(service.generatedDir);
       expect(dirExists).toBe(true);
+    });
+  });
+
+  describe('loadServices', () => {
+    it('should load the services in the JSON file', () => {
+      const filePath = './loadServices-test-services.json';
+      const fooRootDir = '../foo';
+      const barRootDir = '../bar';
+      const services = {
+        foo: {
+          rootDir: fooRootDir
+        },
+        bar: {
+          rootDir: barRootDir
+        }
+      };
+      writeFileSync(filePath, JSON.stringify(services));
+
+      const result = loadServices(filePath);
+
+      expect(result['foo']).toBeDefined();
+      expect(result['foo'].protosDir).toEqual(`${fooRootDir}/protos/`);
+      expect(result['bar']).toBeDefined();
+      expect(result['bar'].generatedDir).toEqual(`${barRootDir}/generated/`);
+
+      unlinkSync(filePath);
     });
   });
 });
