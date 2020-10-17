@@ -17,8 +17,15 @@ export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): Ty
       fileDescriptorProto.messageType.map(messageType => {
         const packageName = fileDescriptorProto.package;
         const type = messageType.name;
-        const relativePath = `${packageName.replace('.', '/')}/${fileDescriptorProto.name.replace('.proto', '')}.types`;
-        const key = `.${packageName}.${type}`;
+        let relativePath: string;
+        let key: string;
+        if (packageName) {
+          relativePath = `${packageName.replace('.', '/')}/${fileDescriptorProto.name.replace('.proto', '')}.types`;
+          key = packageName ? `.${packageName}.${type}` : `.${type}`;
+        } else {
+          relativePath = `${fileDescriptorProto.name.replace('.proto', '')}.types`;
+          key = `.${type}`;
+        }
         const value = { type, relativePath };
         return [key, value];
       }),
