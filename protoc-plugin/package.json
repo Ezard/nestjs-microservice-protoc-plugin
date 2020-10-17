@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "protoc:compile": "protoc --experimental_allow_proto3_optional --plugin=../protoc-plugin/protoc-gen-ts_proto.cmd --ts_proto_out=. --ts_proto_opt=protos_dir=../protos -I ../protos ../protos/*.proto",
+    "protoc:compile": "protoc --experimental_allow_proto3_optional --plugin=../protoc-plugin/protoc-gen-ts_proto.cmd --ts_proto_out=. --ts_proto_opt=protos_dir=../protos,services_file=services.json -I ../protos ../protos/*.proto",
     "lint:eslint": "eslint src",
     "lint:prettier": "prettier src --check",
     "test": "jest",
@@ -54,6 +54,11 @@
     ],
     "coveragePathIgnorePatterns": [
       ".spec.ts"
-    ]
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.test.json"
+      }
+    }
   }
 }
