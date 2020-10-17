@@ -118,3 +118,4 @@ dist
 
 generated
 protos
+!/protos
