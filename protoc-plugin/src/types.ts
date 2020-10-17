@@ -96,10 +96,10 @@ function generateMessageInterfaces(service: Service, messageTypes: DescriptorPro
     .map(
       messageType =>
         code`
-              export interface ${messageType.name} {
-                ${generateFields(service, messageType, typeMap)}
-              }
-            `,
+          export interface ${messageType.name} {
+            ${generateFields(service, messageType, typeMap)}
+          }
+        `,
     )
     .reduce(combineCode);
 }
