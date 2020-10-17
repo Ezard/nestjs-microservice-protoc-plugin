@@ -33,7 +33,7 @@ export function loadServices(filePath: string): Services {
   const data = JSON.parse(readFileSync(filePath, { encoding: 'utf-8' })) as { [s: string]: { rootDir: string } };
   const services = {} as Services;
   for (const [key, value] of Object.entries(data)) {
-    services[key] = Object.assign(new Service(value.rootDir));
+    services[key] = new Service(value.rootDir);
   }
   return services;
 }
