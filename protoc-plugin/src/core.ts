@@ -39,10 +39,9 @@ export function loadServices(filePath: string): Services {
 }
 
 export function determineServices(
-  servicesFile: string,
+  services: Services,
   fileDescriptorProto: FileDescriptorProto,
 ): { backendServices: Service[]; frontendServices: Service[] } {
-  const services = loadServices(servicesFile);
   const leadingDetachedComments =
     fileDescriptorProto.sourceCodeInfo?.location?.flatMap(location => location.leadingDetachedComments) ?? [];
   if (leadingDetachedComments.length > 0) {

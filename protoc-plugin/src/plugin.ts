@@ -2,7 +2,7 @@ import { unlinkSync, writeFileSync } from 'fs';
 import { google } from 'ts-proto/build/pbjs';
 import { promisify } from 'util';
 import { generateBackendContent } from './backend-services';
-import { determineServices, LOG } from './core';
+import { determineServices, loadServices, LOG, Services } from './core';
 import { generateFrontendContent } from './frontend-services';
 import { generateTypeMap, generateTypesContent, TypeMap } from './types';
 import { readToBuffer } from './utils';
@@ -12,12 +12,12 @@ import Feature = google.protobuf.compiler.CodeGeneratorResponse.Feature;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 async function generateFiles(
-  servicesFile: string,
+  services: Services,
   protosDir: string,
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
 ): Promise<CodeGeneratorResponse.File[]> {
-  const { backendServices, frontendServices } = determineServices(servicesFile, fileDescriptorProto);
+  const { backendServices, frontendServices } = determineServices(services, fileDescriptorProto);
   return [
     ...(await Promise.all(
       [...backendServices, ...frontendServices].map(service =>
@@ -50,11 +50,12 @@ async function main() {
     throw new Error('"services_file" parameter must be specified e.g. --ts_proto_opt=services_file=services.json');
   }
 
+  const services = loadServices(servicesFile);
   const typeMap = generateTypeMap(request.protoFile);
   const files = (
     await Promise.all(
       request.protoFile.flatMap(fileDescriptorProto =>
-        generateFiles(servicesFile, protosDir, fileDescriptorProto, typeMap),
+        generateFiles(services, protosDir, fileDescriptorProto, typeMap),
       ),
     )
   ).reduce((acc, cur) => acc.concat(cur), []);
