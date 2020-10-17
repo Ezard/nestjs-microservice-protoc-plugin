@@ -33,7 +33,7 @@ function generateFrontendService(
     };
 
     export interface ${serviceDescriptorProto.name}Client {
-      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode)}
+      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode, code``)}
     }
   `;
 }
@@ -48,6 +48,6 @@ export async function generateFrontendContent(
     .map(serviceDescriptorProto =>
       generateFrontendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap),
     )
-    .reduce(combineCode);
+    .reduce(combineCode, code``);
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'frontend', codeContent);
 }

@@ -88,7 +88,7 @@ function generateFields(service: Service, messageType: DescriptorProto, typeMap:
           return code`  ${field.name}: ${getType(service, field, typeMap)}[];`;
       }
     })
-    .reduce(combineCode);
+    .reduce(combineCode, code``);
 }
 
 function generateMessageInterfaces(service: Service, messageTypes: DescriptorProto[], typeMap: TypeMap): Code {
@@ -101,7 +101,7 @@ function generateMessageInterfaces(service: Service, messageTypes: DescriptorPro
           }
         `,
     )
-    .reduce(combineCode);
+    .reduce(combineCode, code``);
 }
 
 export async function generateTypesContent(

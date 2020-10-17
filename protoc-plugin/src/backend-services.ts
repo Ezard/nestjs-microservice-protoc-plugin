@@ -27,7 +27,7 @@ function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto):
 function generateBackendService(serviceDescriptorProto: ServiceDescriptorProto, typeMap: TypeMap): Code {
   return code`
     export interface ${serviceDescriptorProto.name}Controller {
-      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode)}
+      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode, code``)}
     }
 
     export function ${serviceDescriptorProto.name}ControllerMethods() {
@@ -45,6 +45,6 @@ export async function generateBackendContent(
 ): Promise<CodeGeneratorResponse.File> {
   const codeContent = fileDescriptorProto.service
     .map(serviceDescriptorProto => generateBackendService(serviceDescriptorProto, typeMap))
-    .reduce(combineCode);
+    .reduce(combineCode, code``);
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'backend', codeContent);
 }
