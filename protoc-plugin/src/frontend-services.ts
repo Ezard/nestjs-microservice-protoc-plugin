@@ -23,19 +23,19 @@ function generateFrontendService(
 ): Code {
   copyFileSync(join(srcProtosDir, fileDescriptorProto.name), join(service.protosDir, fileDescriptorProto.name));
   return code`
-      export const ${serviceDescriptorProto.name}ClientProviderOptions: ${ClientProviderOptions} = {
-        name: '${serviceDescriptorProto.name}',
-        transport: ${Transport}.GRPC,
-        options: {
-          package: '${fileDescriptorProto.package}',
-          protoPath: '../protos/${fileDescriptorProto.name}'
-        }
-      };
-
-      export interface ${serviceDescriptorProto.name}Client {
-        ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode)}
+    export const ${serviceDescriptorProto.name}ClientProviderOptions: ${ClientProviderOptions} = {
+      name: '${serviceDescriptorProto.name}',
+      transport: ${Transport}.GRPC,
+      options: {
+        package: '${fileDescriptorProto.package}',
+        protoPath: '../protos/${fileDescriptorProto.name}'
       }
-    `;
+    };
+
+    export interface ${serviceDescriptorProto.name}Client {
+      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode)}
+    }
+  `;
 }
 
 export async function generateFrontendContent(

@@ -13,12 +13,12 @@ function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto):
   if (methods.length > 0) {
     const methodNames = methods.map(method => `'${method.name}'`).join(', ');
     return code`
-          const grpcMethods: string[] = [${methodNames}];
-          for (const method of grpcMethods) {
-            const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-            ${GrpcMethod}('${name}', method)(constructor.prototype[method], method, descriptor);
-          }
-        `;
+      const grpcMethods: string[] = [${methodNames}];
+      for (const method of grpcMethods) {
+        const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
+        ${GrpcMethod}('${name}', method)(constructor.prototype[method], method, descriptor);
+      }
+    `;
   } else {
     return code``;
   }
@@ -26,15 +26,16 @@ function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto):
 
 function generateBackendService(serviceDescriptorProto: ServiceDescriptorProto, typeMap: TypeMap): Code {
   return code`
-export interface ${serviceDescriptorProto.name}Controller {
-  ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode)}
-}
+    export interface ${serviceDescriptorProto.name}Controller {
+      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode)}
+    }
 
-export function ${serviceDescriptorProto.name}ControllerMethods() {
-  return function (constructor: Function) {
-    ${generateGrpcMethods(serviceDescriptorProto)}
-  }
-}`;
+    export function ${serviceDescriptorProto.name}ControllerMethods() {
+      return function (constructor: Function) {
+        ${generateGrpcMethods(serviceDescriptorProto)}
+      }
+    }
+  `;
 }
 
 export async function generateBackendContent(
