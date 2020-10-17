@@ -63,11 +63,11 @@ function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap
     case Type.TYPE_STRING:
       return 'string';
     case Type.TYPE_GROUP:
-      return 'undefined';
+      return 'never';
     case Type.TYPE_MESSAGE:
       return getImpFromTypeName(typeMap, field.typeName);
     case Type.TYPE_BYTES:
-      return 'undefined';
+      return 'never';
     case Type.TYPE_UINT32:
       return 'number';
     case Type.TYPE_ENUM:
