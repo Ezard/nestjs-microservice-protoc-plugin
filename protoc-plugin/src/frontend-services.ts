@@ -9,9 +9,7 @@ import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
 
-const ClientProviderOptions = imp(
-  'ClientProviderOptions@@nestjs/microservices/module/interfaces/clients-module.interface',
-);
+const ClientProviderOptions = imp('ClientProviderOptions@@nestjs/microservices');
 const Transport = imp('Transport@@nestjs/microservices');
 
 function generateFrontendService(
