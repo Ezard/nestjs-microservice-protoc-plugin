@@ -13,10 +13,15 @@ export type TypeMap = Map<string, { type: string; relativePath: string }>;
 
 export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): TypeMap {
   return new Map(
-    fileDescriptorProtos.flatMap(fileDescriptorProto =>
-      fileDescriptorProto.messageType.map(messageType => {
+    fileDescriptorProtos
+      .flatMap(fileDescriptorProto => {
+        return [
+          ...fileDescriptorProto.messageType.map(messageType => ({ fileDescriptorProto, type: messageType.name })),
+          ...fileDescriptorProto.enumType.map(messageType => ({ fileDescriptorProto, type: messageType.name })),
+        ];
+      })
+      .map(({ fileDescriptorProto, type }) => {
         const packageName = fileDescriptorProto.package;
-        const type = messageType.name;
         let relativePath: string;
         let key: string;
         if (packageName) {
@@ -29,7 +34,6 @@ export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): Ty
         const value = { type, relativePath };
         return [key, value];
       }),
-    ),
   );
 }
 
@@ -71,7 +75,7 @@ function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap
     case Type.TYPE_UINT32:
       return 'number';
     case Type.TYPE_ENUM:
-      return code`${typeMap[field.typeName]}`;
+      return getImpFromTypeName(typeMap, field.typeName);
     case Type.TYPE_SFIXED32:
       return 'number';
     case Type.TYPE_SFIXED64:
