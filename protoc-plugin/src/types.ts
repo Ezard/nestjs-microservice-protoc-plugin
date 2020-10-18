@@ -4,6 +4,7 @@ import { Service } from './core';
 import { combineCode, createCodeGeneratorResponseFile } from './utils';
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import DescriptorProto = google.protobuf.DescriptorProto;
+import EnumDescriptorProto = google.protobuf.EnumDescriptorProto;
 import FieldDescriptorProto = google.protobuf.FieldDescriptorProto;
 import Label = google.protobuf.FieldDescriptorProto.Label;
 import Type = google.protobuf.FieldDescriptorProto.Type;
@@ -115,11 +116,27 @@ function generateMessageInterfaces(service: Service, messageTypes: DescriptorPro
     .reduce(combineCode, code``);
 }
 
+function generateEnums(service: Service, enumTypes: EnumDescriptorProto[]): Code {
+  return enumTypes
+    .map(enumType => {
+      const values = enumType.value.map(value => `${value.name} = ${value.number},`);
+      return code`
+          export enum ${enumType.name} {
+            ${values}
+          }
+        `;
+    })
+    .reduce(combineCode, code``);
+}
+
 export async function generateTypesContent(
   service: Service,
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
 ): Promise<CodeGeneratorResponse.File> {
-  const codeContent = generateMessageInterfaces(service, fileDescriptorProto.messageType, typeMap);
+  const codeContent = code`
+    ${generateMessageInterfaces(service, fileDescriptorProto.messageType, typeMap)}
+    ${generateEnums(service, fileDescriptorProto.enumType)}
+  `;
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'types', codeContent);
 }
