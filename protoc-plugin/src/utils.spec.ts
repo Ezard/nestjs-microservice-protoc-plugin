@@ -1,13 +1,23 @@
 import { existsSync, mkdirSync, rmdirSync } from 'fs';
+import { join } from 'path';
+import { util } from 'protobufjs';
 import { PassThrough } from 'stream';
 import { code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
 import { trimPadding } from '../test/utils';
 import { Service } from './core';
 import { TypeMap } from './types';
-import { combineCode, createCodeGeneratorResponseFile, getMethodDefinition, mkdirs, readToBuffer } from './utils';
+import {
+  combineCode,
+  createCodeGeneratorResponseFile,
+  createCodeGeneratorResponseFileForBackendMicroserviceOptions,
+  getMethodDefinition,
+  mkdirs,
+  readToBuffer,
+} from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
+import normalize = util.path.normalize;
 
 // noinspection JSUnusedGlobalSymbols
 jest.mock('./types', () => ({
@@ -115,6 +125,26 @@ describe('utils', () => {
         expect(lines[1]).toEqual(`import { Baz } from '${importPath}';`);
       },
     );
+  });
+
+  describe('createCodeGeneratorResponseFileForBackendMicroserviceOptions', () => {
+    const rootDir = 'createCodeGeneratorResponseFile-test';
+    const service = new Service(rootDir);
+
+    it("should generate the file in the service's 'generated' directory", async () => {
+      const result = await createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, code``);
+
+      const expectedFilePath = normalize(join(service.generatedDir, 'backend-microservice-options.ts'));
+
+      expect(result.name).toEqual(expectedFilePath);
+    });
+
+    it('should prefix code content with a comment to disable ESLint', async () => {
+      const result = await createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, code``);
+      const lines = result.content.split(/\r\n?|\n/);
+
+      expect(lines[0]).toEqual('/* eslint-disable */');
+    });
   });
 
   describe('combineCode', () => {
