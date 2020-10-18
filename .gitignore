@@ -116,6 +116,5 @@ fabric.properties
 dist
 /uploads
 
-generated
-protos
-!/protos
+src/generated
+src/protos
