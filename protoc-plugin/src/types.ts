@@ -27,7 +27,7 @@ export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): Ty
         let key: string;
         if (packageName) {
           relativePath = `${packageName.replace('.', '/')}/${fileDescriptorProto.name.replace('.proto', '')}.types`;
-          key = packageName ? `.${packageName}.${type}` : `.${type}`;
+          key = `.${packageName}.${type}`;
         } else {
           relativePath = `${fileDescriptorProto.name.replace('.proto', '')}.types`;
           key = `.${type}`;
