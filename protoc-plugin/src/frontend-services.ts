@@ -22,6 +22,9 @@ function generateFrontendService(
   typeMap: TypeMap,
 ): Code {
   copyFileSync(join(srcProtosDir, fileDescriptorProto.name), join(service.protosDir, fileDescriptorProto.name));
+  const methodDefinitions = serviceDescriptorProto.method
+    .map(method => getMethodDefinition(method, typeMap))
+    .reduce(combineCode, code``);
   return code`
     export const ${serviceDescriptorProto.name}ClientProviderOptions: ${ClientProviderOptions} = {
       name: '${serviceDescriptorProto.name}',
@@ -33,7 +36,7 @@ function generateFrontendService(
     };
 
     export interface ${serviceDescriptorProto.name}Client {
-      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode, code``)}
+      ${methodDefinitions}
     }
   `;
 }

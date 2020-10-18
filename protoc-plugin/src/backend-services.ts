@@ -25,9 +25,12 @@ function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto):
 }
 
 function generateBackendService(serviceDescriptorProto: ServiceDescriptorProto, typeMap: TypeMap): Code {
+  const methodDefinitions = serviceDescriptorProto.method
+    .map(method => getMethodDefinition(method, typeMap))
+    .reduce(combineCode, code``);
   return code`
     export interface ${serviceDescriptorProto.name}Controller {
-      ${serviceDescriptorProto.method.map(method => getMethodDefinition(method, typeMap)).reduce(combineCode, code``)}
+      ${methodDefinitions}
     }
 
     export function ${serviceDescriptorProto.name}ControllerMethods() {
