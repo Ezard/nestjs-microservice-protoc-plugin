@@ -403,11 +403,7 @@ describe('types', () => {
       const enumValue3 = new EnumValueDescriptorProto({ name: 'BAZ', number: 1 });
       const enumType = new EnumDescriptorProto({
         name: enumName,
-        value: [
-          enumValue1,
-          enumValue2,
-          enumValue3
-        ],
+        value: [enumValue1, enumValue2, enumValue3],
       });
       const fileDescriptorProto = new FileDescriptorProto({
         name: 'foos.proto',
