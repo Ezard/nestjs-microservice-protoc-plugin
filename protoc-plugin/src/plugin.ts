@@ -25,7 +25,7 @@ async function generateFiles(
       ),
     )),
     ...(await Promise.all(
-      backendServices.map(service => generateBackendContent(service, fileDescriptorProto, typeMap)),
+      backendServices.map(service => generateBackendContent(service, protosDir, fileDescriptorProto, typeMap)),
     )),
     ...(await Promise.all(
       frontendServices.map(service => generateFrontendContent(service, protosDir, fileDescriptorProto, typeMap)),

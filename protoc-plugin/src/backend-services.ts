@@ -1,3 +1,5 @@
+import { copyFileSync } from 'fs';
+import { join } from 'path';
 import { util } from 'protobufjs';
 import { code, Code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
@@ -33,7 +35,14 @@ function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto):
   }
 }
 
-function generateBackendService(serviceDescriptorProto: ServiceDescriptorProto, typeMap: TypeMap): Code {
+function generateBackendService(
+  service: Service,
+  srcProtosDir: string,
+  fileDescriptorProto: FileDescriptorProto,
+  serviceDescriptorProto: ServiceDescriptorProto,
+  typeMap: TypeMap,
+): Code {
+  copyFileSync(join(srcProtosDir, fileDescriptorProto.name), join(service.protosDir, fileDescriptorProto.name));
   const methodDefinitions = serviceDescriptorProto.method
     .map(method => getMethodDefinition(method, typeMap))
     .reduce(combineCode, code``);
@@ -52,11 +61,14 @@ function generateBackendService(serviceDescriptorProto: ServiceDescriptorProto, 
 
 export async function generateBackendContent(
   service: Service,
+  protosDir: string,
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
 ): Promise<CodeGeneratorResponse.File> {
   const codeContent = fileDescriptorProto.service
-    .map(serviceDescriptorProto => generateBackendService(serviceDescriptorProto, typeMap))
+    .map(serviceDescriptorProto =>
+      generateBackendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap),
+    )
     .reduce(combineCode, code``);
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'backend', codeContent);
 }
