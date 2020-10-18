@@ -5,14 +5,7 @@ import { google } from 'ts-proto/build/pbjs';
 import { trimPadding } from '../test/utils';
 import { Service } from './core';
 import { TypeMap } from './types';
-import {
-  combineCode,
-  createCodeGeneratorResponseFile,
-  getMethodDefinition,
-  mkdirs,
-  prefixDisableLinter,
-  readToBuffer,
-} from './utils';
+import { combineCode, createCodeGeneratorResponseFile, getMethodDefinition, mkdirs, readToBuffer } from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 
@@ -209,16 +202,6 @@ describe('utils', () => {
       mkdirs(path);
 
       expect(existsSync(path)).toBe(true);
-    });
-  });
-
-  describe('prefixDisableLinter', () => {
-    it('should should prefix the provided string with a comment to disable ESLint', () => {
-      const input = `class Test {}`;
-
-      const result = prefixDisableLinter(input);
-
-      expect(result.startsWith(`/* eslint-disable */\n`)).toBe(true);
     });
   });
 });

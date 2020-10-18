@@ -27,6 +27,11 @@ export function readToBuffer(stream: ReadableStream): Promise<Buffer> {
   });
 }
 
+function prefixDisableLinter(fileContents: string): string {
+  return `/* eslint-disable */
+${fileContents}`;
+}
+
 export async function createCodeGeneratorResponseFile(
   service: Service,
   fileDescriptorProto: FileDescriptorProto,
@@ -80,9 +85,4 @@ export function mkdirs(path: string): void {
     mkdirs(join(path, '..'));
     mkdirSync(path);
   }
-}
-
-export function prefixDisableLinter(fileContents: string): string {
-  return `/* eslint-disable */
-${fileContents}`;
 }
