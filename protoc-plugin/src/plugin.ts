@@ -1,7 +1,7 @@
 import { unlinkSync, writeFileSync } from 'fs';
 import { google } from 'ts-proto/build/pbjs';
 import { promisify } from 'util';
-import { generateBackendContent } from './backend-services';
+import { generateBackendContent, generateBackendMicroserviceOptionsFiles } from './backend-services';
 import { determineServices, loadServices, LOG, Services } from './core';
 import { generateFrontendContent } from './frontend-services';
 import { generateTypeMap, generateTypesContent, TypeMap } from './types';
@@ -52,13 +52,16 @@ async function main() {
 
   const services = loadServices(servicesFile);
   const typeMap = generateTypeMap(request.protoFile);
-  const files = (
-    await Promise.all(
-      request.protoFile.flatMap(fileDescriptorProto =>
-        generateFiles(services, protosDir, fileDescriptorProto, typeMap),
-      ),
-    )
-  ).reduce((acc, cur) => acc.concat(cur), []);
+  const files = [
+    ...(
+      await Promise.all(
+        request.protoFile.flatMap(fileDescriptorProto =>
+          generateFiles(services, protosDir, fileDescriptorProto, typeMap),
+        ),
+      )
+    ).reduce((acc, cur) => acc.concat(cur), []),
+    ...(await Promise.all(generateBackendMicroserviceOptionsFiles(services, request.protoFile))),
+  ];
   const response = new CodeGeneratorResponse({
     file: files,
     supportedFeatures: Feature.FEATURE_PROTO3_OPTIONAL,

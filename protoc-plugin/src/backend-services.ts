@@ -1,13 +1,22 @@
+import { util } from 'protobufjs';
 import { code, Code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
-import { Service } from './core';
+import { determineServices, Service, Services } from './core';
 import { TypeMap } from './types';
-import { combineCode, createCodeGeneratorResponseFile, getMethodDefinition } from './utils';
+import {
+  combineCode,
+  createCodeGeneratorResponseFile,
+  createCodeGeneratorResponseFileForBackendMicroserviceOptions,
+  getMethodDefinition,
+} from './utils';
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
+import normalize = util.path.normalize;
 
 const GrpcMethod = imp('GrpcMethod@@nestjs/microservices');
+const GrpcOptions = imp('GrpcOptions@@nestjs/microservices');
+const Transport = imp('Transport@@nestjs/microservices');
 
 function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto): Code {
   if (methods.length > 0) {
@@ -50,4 +59,48 @@ export async function generateBackendContent(
     .map(serviceDescriptorProto => generateBackendService(serviceDescriptorProto, typeMap))
     .reduce(combineCode, code``);
   return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'backend', codeContent);
+}
+
+export function generateBackendMicroserviceOptionsFiles(
+  services: Services,
+  fileDescriptorProtos: FileDescriptorProto[],
+): Promise<google.protobuf.compiler.CodeGeneratorResponse.File>[] {
+  return fileDescriptorProtos
+    .flatMap(fileDescriptorProto => ({
+      fileDescriptorProto,
+      backendServices: determineServices(services, fileDescriptorProto).backendServices,
+    }))
+    .flatMap(({ backendServices, fileDescriptorProto }) =>
+      backendServices.map(backendService => ({ backendService, fileDescriptorProto })),
+    )
+    .reduce((acc, { backendService, fileDescriptorProto }) => {
+      const item = acc.find(value => value.service === backendService);
+      if (item) {
+        item.fileDescriptorProtos.push(fileDescriptorProto);
+      } else {
+        acc.push({ service: backendService, fileDescriptorProtos: [fileDescriptorProto] });
+      }
+      return acc;
+    }, new Array<{ service: Service; fileDescriptorProtos: FileDescriptorProto[] }>())
+    .flatMap(({ service, fileDescriptorProtos }) => {
+      const packages = fileDescriptorProtos
+        .map(fileDescriptorProto => `'${normalize(fileDescriptorProto.package.replace('.', '/'))}'`)
+        .join(',');
+      const protoPaths = fileDescriptorProtos
+        .map(fileDescriptorProto => `'${normalize(`../protos/${fileDescriptorProto.name}`)}'`)
+        .join(',');
+      const codeContent = code`
+        export function getBackendMicroserviceOptions(url: string): ${GrpcOptions} {
+          return {
+            transport: ${Transport}.GRPC,
+            options: {
+              package: [${packages}],
+              protoPath: [${protoPaths}],
+              url,
+            },
+          };
+        }
+      `;
+      return createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, codeContent);
+    });
 }

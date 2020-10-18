@@ -50,6 +50,16 @@ export async function createCodeGeneratorResponseFile(
   });
 }
 
+export async function createCodeGeneratorResponseFileForBackendMicroserviceOptions(service: Service, codeContent: Code): Promise<CodeGeneratorResponse.File> {
+  const fullPath = normalize(join(service.generatedDir, 'backend-microservice-options.ts'));
+  return new CodeGeneratorResponse.File({
+    name: fullPath,
+    content: prefixDisableLinter(
+      await codeContent.toStringWithImports(),
+    ),
+  });
+}
+
 export function combineCode(acc: Code, cur: Code): Code {
   return code`${acc}\n${cur}`;
 }
