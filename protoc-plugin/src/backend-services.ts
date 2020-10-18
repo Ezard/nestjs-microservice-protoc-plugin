@@ -75,9 +75,9 @@ export async function generateBackendContent(
 
 export function generateBackendMicroserviceOptionsFiles(
   services: Services,
-  fileDescriptorProtos: FileDescriptorProto[],
+  fileDescriptorProtoList: FileDescriptorProto[],
 ): Promise<google.protobuf.compiler.CodeGeneratorResponse.File>[] {
-  return fileDescriptorProtos
+  return fileDescriptorProtoList
     .flatMap(fileDescriptorProto => ({
       fileDescriptorProto,
       backendServices: determineServices(services, fileDescriptorProto).backendServices,
