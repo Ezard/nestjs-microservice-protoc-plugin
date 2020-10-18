@@ -93,7 +93,7 @@ export function generateBackendMicroserviceOptionsFiles(
         acc.push({ service: backendService, fileDescriptorProtos: [fileDescriptorProto] });
       }
       return acc;
-    }, new Array<{ service: Service; fileDescriptorProtos: FileDescriptorProto[] }>())
+    }, [] as { service: Service; fileDescriptorProtos: FileDescriptorProto[] }[])
     .flatMap(({ service, fileDescriptorProtos }) => {
       const packages = fileDescriptorProtos
         .map(fileDescriptorProto => `'${normalize(fileDescriptorProto.package.replace('.', '/'))}'`)
