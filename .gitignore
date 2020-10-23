@@ -118,3 +118,6 @@ dist
 
 src/generated
 src/protos
+
+.stryker-tmp
+reports
