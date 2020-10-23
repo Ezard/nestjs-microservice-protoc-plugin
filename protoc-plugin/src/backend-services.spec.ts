@@ -163,6 +163,57 @@ describe('backend-services', () => {
       expect(trimmedResult).toEqual(expected);
     });
 
+    it('should emit the correct output when the service has multiple methods', async () => {
+      const fileDescriptorProto = new FileDescriptorProto({
+        name: protoFileName,
+        service: [
+          new ServiceDescriptorProto({
+            name: 'Foo',
+            method: [
+              new MethodDescriptorProto({
+                name: 'foo1',
+                inputType: '.Bar',
+                outputType: '.Baz',
+              }),
+              new MethodDescriptorProto({
+                name: 'foo2',
+                inputType: '.Baz',
+                outputType: '.Bar',
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = await generateBackendContent(service, protosDir, fileDescriptorProto, typeMap);
+      const trimmedResult = result.content.trim();
+
+      const expected = trimPadding(`
+        /* eslint-disable */
+        import { GrpcMethod } from '@nestjs/microservices';
+        import { Baz } from './baz/Baz';
+        import { Bar } from './bar/Bar';
+        import { Observable } from 'rxjs';
+
+        export interface FooController {
+          foo1(request: Bar): Baz | Promise<Baz> | Observable<Baz>;
+          foo2(request: Baz): Bar | Promise<Bar> | Observable<Bar>;
+        }
+
+        export function FooControllerMethods() {
+          return function (constructor: Function) {
+            const grpcMethods: string[] = ['foo1', 'foo2'];
+            for (const method of grpcMethods) {
+              const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
+              GrpcMethod('Foo', method)(constructor.prototype[method], method, descriptor);
+            }
+          };
+        }
+      `).trim();
+
+      expect(trimmedResult).toEqual(expected);
+    });
+
     it('should emit the correct output when a service has no methods', async () => {
       const fileDescriptorProto = new FileDescriptorProto({
         name: protoFileName,
