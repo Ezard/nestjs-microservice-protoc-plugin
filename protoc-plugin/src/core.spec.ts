@@ -77,12 +77,18 @@ describe('core', () => {
   });
 
   describe('determineServices', () => {
+    const rootTestDir = './determineServices-test';
     const services: Services = {
-      fooBackend: new Service('./determineServices-test-fooBackend'),
-      fooFrontend: new Service('./determineServices-test-fooFrontend'),
-      barBackend: new Service('./determineServices-test-barBackend'),
-      barFrontend: new Service('./determineServices-test-barFrontend'),
+      fooBackend: new Service(`${rootTestDir}/fooBackend`),
+      fooFrontend: new Service(`${rootTestDir}/fooFrontend`),
+      barBackend: new Service(`${rootTestDir}/barBackend`),
+      barFrontend: new Service(`${rootTestDir}/barFrontend`),
     };
+
+    afterAll(() => {
+      rmdirSync(rootTestDir, { recursive: true });
+    });
+
     it('should parse a single backend service', () => {
       const fileDescriptorProto = new FileDescriptorProto({
         sourceCodeInfo: new SourceCodeInfo({
