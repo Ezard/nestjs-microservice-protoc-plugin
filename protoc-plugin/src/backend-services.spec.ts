@@ -195,7 +195,7 @@ describe('backend-services', () => {
       rmdirSync('./foo');
     });
 
-    it('should work 1', async () => {
+    it('should emit the correct output when a single file is provided', async () => {
       const services: Services = {
         foo: new Service('./foo'),
       };
@@ -235,7 +235,58 @@ describe('backend-services', () => {
       expect(result).toEqual(expected);
     });
 
-    it('should work 2', async () => {
+    it('should emit the correct output when a multiple files in the same package are provided', async () => {
+      const services: Services = {
+        foo: new Service('./foo'),
+      };
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: './foo/foo.proto',
+          package: 'foo',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['backend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+        new FileDescriptorProto({
+          name: './foo/bar.proto',
+          package: 'foo',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['backend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
+      const result = files[0].content.trim();
+
+      const expected = trimPadding(`
+        /* eslint-disable */
+        import { GrpcOptions, Transport } from '@nestjs/microservices';
+
+        export function getBackendMicroserviceOptions(url: string): GrpcOptions {
+          return {
+            transport: Transport.GRPC,
+            options: {
+              package: ['foo'],
+              protoPath: ['../protos/foo/foo.proto', '../protos/foo/bar.proto'],
+              url,
+            },
+          };
+        }
+      `).trim();
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should emit the correct output when a multiple files in different packages are provided', async () => {
       const services: Services = {
         foo: new Service('./foo'),
       };
