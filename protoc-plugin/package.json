@@ -12,7 +12,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:cov:watch": "jest --coverage --watch"
+    "test:cov:watch": "jest --coverage --watch",
+    "pre:stryker": "node setup-stryker.js",
+    "stryker": "npm run pre:stryker && stryker run"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +24,9 @@
     "ts-poet": "^3.2.2"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^4.0.0",
+    "@stryker-mutator/jest-runner": "^4.0.0",
+    "@stryker-mutator/typescript-checker": "^4.0.0",
     "@types/jest": "^26.0.14",
     "@types/node": "^14.11.8",
     "@typescript-eslint/eslint-plugin": "^4.4.1",
