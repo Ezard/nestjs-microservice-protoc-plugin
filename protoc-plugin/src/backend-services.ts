@@ -20,9 +20,13 @@ const GrpcMethod = imp('GrpcMethod@@nestjs/microservices');
 const GrpcOptions = imp('GrpcOptions@@nestjs/microservices');
 const Transport = imp('Transport@@nestjs/microservices');
 
+function quote(str: string): string {
+  return `'${str}'`;
+}
+
 function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto): Code {
   if (methods.length > 0) {
-    const methodNames = methods.map(method => `'${method.name}'`).join(', ');
+    const methodNames = methods.map(method => quote(method.name)).join(', ');
     return code`
       const grpcMethods: string[] = [${methodNames}];
       for (const method of grpcMethods) {
@@ -96,11 +100,11 @@ export function generateBackendMicroserviceOptionsFiles(
     }, [] as { service: Service; fileDescriptorProtos: FileDescriptorProto[] }[])
     .flatMap(({ service, fileDescriptorProtos }) => {
       const packages = fileDescriptorProtos
-        .map(fileDescriptorProto => `'${normalize(fileDescriptorProto.package.replace('.', '/'))}'`)
+        .map(fileDescriptorProto => quote(normalize(fileDescriptorProto.package.replace('.', '/'))))
         .filter((value, index, array) => array.indexOf(value) === index)
         .join(',');
       const protoPaths = fileDescriptorProtos
-        .map(fileDescriptorProto => `'${normalize(`../protos/${fileDescriptorProto.name}`)}'`)
+        .map(fileDescriptorProto => quote(normalize(`../protos/${fileDescriptorProto.name}`)))
         .join(',');
       const codeContent = code`
         export function getBackendMicroserviceOptions(url: string): ${GrpcOptions} {
