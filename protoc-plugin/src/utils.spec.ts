@@ -44,7 +44,7 @@ describe('utils', () => {
 
   describe('createCodeGeneratorResponseFile', () => {
     const rootDir = 'createCodeGeneratorResponseFile-test';
-    const fileName = 'protos/foo.proto';
+    const fileName = 'foo.proto';
     let service: Service;
 
     beforeEach(() => {
