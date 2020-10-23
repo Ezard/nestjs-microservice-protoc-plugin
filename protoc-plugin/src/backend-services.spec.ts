@@ -336,5 +336,29 @@ describe('backend-services', () => {
 
       expect(result).toEqual(expected);
     });
+
+    it('should not emit anything for frontend services', async () => {
+      const services: Services = {
+        foo: new Service('./foo'),
+      };
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: './foo/foo.proto',
+          package: 'foo',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['frontend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
+      const numFiles = files.length;
+
+      expect(numFiles).toEqual(0);
+    });
   });
 });
