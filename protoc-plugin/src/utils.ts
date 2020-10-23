@@ -39,7 +39,7 @@ export async function createCodeGeneratorResponseFile(
   codeContent: Code,
 ): Promise<CodeGeneratorResponse.File> {
   const directory = fileDescriptorProto.package.replace('.', '/');
-  const fileName = `${fileDescriptorProto.name.replace('protos/', '').replace('.proto', '')}.${type}.ts`;
+  const fileName = `${fileDescriptorProto.name.replace('.proto', '')}.${type}.ts`;
   const relativePath = normalize(join(directory, fileName));
   const fullPath = normalize(join(service.generatedDir, relativePath));
   return new CodeGeneratorResponse.File({
