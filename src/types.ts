@@ -50,41 +50,28 @@ export function getImpFromTypeName(typeMap: TypeMap, typeName: string): Code {
 function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap): string | Code {
   switch (field.type) {
     case Type.TYPE_DOUBLE:
-      return 'number';
     case Type.TYPE_FLOAT:
-      return 'number';
     case Type.TYPE_INT64:
-      return 'number';
     case Type.TYPE_UINT64:
-      return 'number';
     case Type.TYPE_INT32:
-      return 'number';
     case Type.TYPE_FIXED64:
-      return 'number';
     case Type.TYPE_FIXED32:
+    case Type.TYPE_UINT32:
+    case Type.TYPE_SFIXED32:
+    case Type.TYPE_SFIXED64:
+    case Type.TYPE_SINT32:
+    case Type.TYPE_SINT64:
       return 'number';
     case Type.TYPE_BOOL:
       return 'boolean';
     case Type.TYPE_STRING:
       return 'string';
     case Type.TYPE_GROUP:
-      return 'never';
-    case Type.TYPE_MESSAGE:
-      return getImpFromTypeName(typeMap, field.typeName);
     case Type.TYPE_BYTES:
       return 'never';
-    case Type.TYPE_UINT32:
-      return 'number';
+    case Type.TYPE_MESSAGE:
     case Type.TYPE_ENUM:
       return getImpFromTypeName(typeMap, field.typeName);
-    case Type.TYPE_SFIXED32:
-      return 'number';
-    case Type.TYPE_SFIXED64:
-      return 'number';
-    case Type.TYPE_SINT32:
-      return 'number';
-    case Type.TYPE_SINT64:
-      return 'number';
   }
 }
 
