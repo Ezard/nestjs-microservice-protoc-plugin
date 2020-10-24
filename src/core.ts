@@ -32,26 +32,25 @@ export function determineServices(
   services: Services,
   fileDescriptorProto: FileDescriptorProto,
 ): { backendServices: Service[]; frontendServices: Service[] } {
-  const leadingDetachedComments =
-    fileDescriptorProto.sourceCodeInfo?.location?.flatMap(location => location.leadingDetachedComments) ?? [];
-  if (leadingDetachedComments.length > 0) {
+  const leadingDetachedComments = fileDescriptorProto.sourceCodeInfo?.location?.flatMap(
+    location => location.leadingDetachedComments,
+  );
+  if (leadingDetachedComments && leadingDetachedComments.length > 0) {
     const lines = leadingDetachedComments[0].split(/\r?\n/).filter(line => !!line);
-    const backendServices =
-      lines
-        .find(line => line.startsWith('backend-services='))
-        ?.split('=')?.[1]
-        ?.split(',') ?? [];
-    const frontendServices =
-      lines
-        .find(line => line.startsWith('frontend-services='))
-        ?.split('=')?.[1]
-        ?.split(',') ?? [];
+    const backendServices = lines
+      .find(line => line.startsWith('backend-services='))
+      ?.split('=')?.[1]
+      ?.split(',');
+    const frontendServices = lines
+      .find(line => line.startsWith('frontend-services='))
+      ?.split('=')?.[1]
+      ?.split(',');
     return {
       backendServices: Object.keys(services)
-        .filter(key => backendServices.find(service => service === key))
+        .filter(key => backendServices?.find(service => service === key))
         .map(key => services[key]),
       frontendServices: Object.keys(services)
-        .filter(key => frontendServices.find(service => service === key))
+        .filter(key => frontendServices?.find(service => service === key))
         .map(key => services[key]),
     };
   } else {
