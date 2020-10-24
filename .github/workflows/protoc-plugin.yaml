@@ -4,12 +4,6 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - protoc-plugin/*
-
-defaults:
-  run:
-    working-directory: protoc-plugin
 
 jobs:
   CI:
