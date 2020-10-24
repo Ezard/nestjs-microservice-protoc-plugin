@@ -388,6 +388,64 @@ describe('backend-services', () => {
       expect(result).toEqual(expected);
     });
 
+    it('should emit the correct output when a multiple backend services are defined', async () => {
+      const services: Services = {
+        foo: new Service('./foo'),
+        bar: new Service('./bar'),
+      };
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: './foo/foo.proto',
+          package: 'foo',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['backend-services=foo,bar'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
+      const result1 = files[0].content.trim();
+      const result2 = files[1].content.trim();
+
+      const expected1 = trimPadding(`
+        /* eslint-disable */
+        import { GrpcOptions, Transport } from '@nestjs/microservices';
+
+        export function getBackendMicroserviceOptions(url: string): GrpcOptions {
+          return {
+            transport: Transport.GRPC,
+            options: {
+              package: ['foo'],
+              protoPath: ['../protos/foo/foo.proto'],
+              url,
+            },
+          };
+        }
+      `).trim();
+      const expected2 = trimPadding(`
+        /* eslint-disable */
+        import { GrpcOptions, Transport } from '@nestjs/microservices';
+
+        export function getBackendMicroserviceOptions(url: string): GrpcOptions {
+          return {
+            transport: Transport.GRPC,
+            options: {
+              package: ['foo'],
+              protoPath: ['../protos/foo/foo.proto'],
+              url,
+            },
+          };
+        }
+      `).trim();
+
+      expect(result1).toEqual(expected1);
+      expect(result2).toEqual(expected2);
+    });
+
     it('should not emit anything for frontend services', async () => {
       const services: Services = {
         foo: new Service('./foo'),
