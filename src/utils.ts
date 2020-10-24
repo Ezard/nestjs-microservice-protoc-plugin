@@ -44,9 +44,7 @@ export async function createCodeGeneratorResponseFile(
   const fullPath = normalize(join(service.generatedDir, relativePath));
   return new CodeGeneratorResponse.File({
     name: fullPath,
-    content: prefixDisableLinter(
-      await codeContent.toStringWithImports(relativePath.substr(0, relativePath.length - 3)),
-    ),
+    content: prefixDisableLinter(await codeContent.toStringWithImports(relativePath)),
   });
 }
 
