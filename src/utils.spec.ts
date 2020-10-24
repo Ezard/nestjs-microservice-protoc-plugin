@@ -180,23 +180,15 @@ describe('utils', () => {
       });
       const typeMap: TypeMap = new Map();
 
-      const result = getMethodDefinition(methodDescriptorProto, typeMap);
+      const result = getMethodDefinition(methodDescriptorProto, typeMap).toString().trim();
 
-      const stringResult = result.toString();
-      const stringResultWithoutPadding = stringResult
-        .split(/\r\n?|\n/)
-        .map(line => line.trim())
-        .join('\n');
+      const expected = trimPadding(`
+        Foo(request: Bar): Baz
+                        | Promise<Baz>
+                        | Observable<Baz>
+      `).trim();
 
-      const expected = `Foo(request: Bar): Baz
-                    | Promise<Baz>
-                    | Observable<Baz>`;
-      const expectedWithoutPadding = expected
-        .split(/\r\n?|\n/)
-        .map(line => line.trim())
-        .join('\n');
-
-      expect(stringResultWithoutPadding).toEqual(expectedWithoutPadding);
+      expect(result).toEqual(expected);
     });
   });
 
