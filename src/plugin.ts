@@ -1,8 +1,7 @@
-import { unlinkSync, writeFileSync } from 'fs';
 import { google } from 'ts-proto/build/pbjs';
 import { promisify } from 'util';
 import { generateBackendContent, generateBackendMicroserviceOptionsFiles } from './backend-services';
-import { determineServices, loadServices, LOG, Services } from './core';
+import { determineServices, loadServices, Services } from './core';
 import { generateFrontendContent } from './frontend-services';
 import { generateTypeMap, generateTypesContent, TypeMap } from './types';
 import { readToBuffer } from './utils';
@@ -34,8 +33,6 @@ async function generateFiles(
 }
 
 async function main() {
-  writeFileSync(LOG, '');
-  unlinkSync(LOG);
   const input = await readToBuffer(process.stdin);
   const request = CodeGeneratorRequest.decode(input);
   const args = request.parameter.split(',');

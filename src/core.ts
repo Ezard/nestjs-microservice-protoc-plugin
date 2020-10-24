@@ -1,13 +1,7 @@
-import { appendFileSync, existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { google } from 'ts-proto/build/pbjs';
 import { mkdirs } from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-
-export const LOG = './log.txt';
-
-export function log(str: unknown): void {
-  appendFileSync(LOG, Buffer.from(`${JSON.stringify(str)}\n`));
-}
 
 export class Service {
   readonly generatedDir: string;
