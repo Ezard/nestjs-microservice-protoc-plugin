@@ -30,4 +30,4 @@ jobs:
       - name: Lint with ESLint
         run: npm run lint:eslint
       - name: Run tests
-        run: npm run test:cov
+        run: npm run test:unit:cov
