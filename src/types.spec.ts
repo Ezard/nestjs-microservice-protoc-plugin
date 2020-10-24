@@ -107,6 +107,7 @@ describe('types', () => {
       }
 
       expect(error).toBeDefined();
+      expect(error?.message).toEqual("Type '.Bar' was not found in the type map");
     });
   });
 
