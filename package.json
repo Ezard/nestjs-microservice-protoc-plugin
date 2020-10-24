@@ -13,8 +13,7 @@
     "test:unit:watch": "jest --watch",
     "test:unit:cov": "jest --coverage",
     "test:unit:cov:watch": "jest --coverage --watch",
-    "pre:stryker": "node setup-stryker.js",
-    "test:mutation": "npm run pre:stryker && stryker run"
+    "test:mutation": "stryker run"
   },
   "author": "",
   "license": "ISC",
