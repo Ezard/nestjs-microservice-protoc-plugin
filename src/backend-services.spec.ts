@@ -1,4 +1,4 @@
-import { rmdirSync, writeFileSync } from 'fs';
+import { rmdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { google } from 'ts-proto/build/pbjs';
 import { trimPadding } from '../test/utils';
@@ -444,6 +444,8 @@ describe('backend-services', () => {
 
       expect(result1).toEqual(expected1);
       expect(result2).toEqual(expected2);
+
+      rmSync('./bar', { recursive: true });
     });
 
     it('should not emit anything for frontend services', async () => {
