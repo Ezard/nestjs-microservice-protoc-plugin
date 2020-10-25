@@ -36,7 +36,7 @@ export function determineServices(
     location => location.leadingDetachedComments,
   );
   if (leadingDetachedComments && leadingDetachedComments.length > 0) {
-    const lines = leadingDetachedComments[0].split(/\r?\n/).filter(line => !!line);
+    const lines = leadingDetachedComments[0].split(/\r?\n/).filter(line => line);
     const backendServices = lines
       .find(line => line.startsWith('backend-services='))
       ?.split('=')?.[1]
