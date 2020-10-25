@@ -1,43 +1,50 @@
-import { existsSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import { google } from 'ts-proto/build/pbjs';
+import { BASE_TEST_DIR } from '../test/utils';
 import { determineServices, loadServices, Service, Services } from './core';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import SourceCodeInfo = google.protobuf.SourceCodeInfo;
 import Location = google.protobuf.SourceCodeInfo.Location;
 
 describe('core', () => {
+  const rootTestDir = join(BASE_TEST_DIR, 'core');
+
   describe('Service', () => {
-    const rootDir = './service-test';
-    const protosDir = './service-test/protos/';
-    const generatedDir = './service-test/generated/';
+    const testDir = join(rootTestDir, 'Service');
+    const serviceRootDir = join(testDir, 'foo');
+    const protosDir = join(serviceRootDir, 'protos');
+    const generatedDir = join(serviceRootDir, 'generated');
+
+    beforeEach(() => {
+      mkdirSync(testDir, { recursive: true });
+    });
 
     afterEach(() => {
-      rmdirSync(protosDir);
-      rmdirSync(generatedDir);
-      rmdirSync(rootDir);
+      rmSync(testDir, { recursive: true, force: true });
     });
 
     it('should calculate protos dir from root dir', () => {
-      const service = new Service(rootDir);
+      const service = new Service(serviceRootDir);
 
       expect(service.protosDir).toEqual(protosDir);
     });
 
     it('should calculate generated dir from root dir', () => {
-      const service = new Service(rootDir);
+      const service = new Service(serviceRootDir);
 
       expect(service.generatedDir).toEqual(generatedDir);
     });
 
     it("should create the protos dir if it doesn't exist", () => {
-      const service = new Service(rootDir);
+      const service = new Service(serviceRootDir);
 
       const dirExists = existsSync(service.protosDir);
       expect(dirExists).toBe(true);
     });
 
     it("should create the generated dir if it doesn't exist", () => {
-      const service = new Service(rootDir);
+      const service = new Service(serviceRootDir);
 
       const dirExists = existsSync(service.generatedDir);
       expect(dirExists).toBe(true);
@@ -45,16 +52,26 @@ describe('core', () => {
   });
 
   describe('loadServices', () => {
+    const testDir = join(rootTestDir, 'loadServices');
+    const fooServiceRootDir = join(testDir, 'foo');
+    const barServiceRootDir = join(testDir, 'bar');
+
+    beforeEach(() => {
+      mkdirSync(testDir, { recursive: true });
+    });
+
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
+    });
+
     it('should load the services in the JSON file', () => {
-      const filePath = './loadServices-test-services.json';
-      const fooRootDir = '../foo';
-      const barRootDir = '../bar';
+      const filePath = join(testDir, 'loadServices-test-services.json');
       const services = {
         foo: {
-          rootDir: fooRootDir,
+          rootDir: fooServiceRootDir,
         },
         bar: {
-          rootDir: barRootDir,
+          rootDir: barServiceRootDir,
         },
       };
       writeFileSync(filePath, JSON.stringify(services));
@@ -62,31 +79,27 @@ describe('core', () => {
       const result = loadServices(filePath);
 
       expect(result['foo']).toBeDefined();
-      expect(result['foo'].protosDir).toEqual(`${fooRootDir}/protos/`);
+      expect(result['foo'].protosDir).toEqual(join(fooServiceRootDir, 'protos'));
       expect(result['bar']).toBeDefined();
-      expect(result['bar'].generatedDir).toEqual(`${barRootDir}/generated/`);
-
-      unlinkSync(filePath);
-      rmdirSync(result['foo'].generatedDir);
-      rmdirSync(result['foo'].protosDir);
-      rmdirSync(fooRootDir);
-      rmdirSync(result['bar'].generatedDir);
-      rmdirSync(result['bar'].protosDir);
-      rmdirSync(barRootDir);
+      expect(result['bar'].generatedDir).toEqual(join(barServiceRootDir, 'generated'));
     });
   });
 
   describe('determineServices', () => {
-    const rootTestDir = './determineServices-test';
+    const testDir = join(rootTestDir, 'determineServices');
     const services: Services = {
-      fooBackend: new Service(`${rootTestDir}/fooBackend`),
-      fooFrontend: new Service(`${rootTestDir}/fooFrontend`),
-      barBackend: new Service(`${rootTestDir}/barBackend`),
-      barFrontend: new Service(`${rootTestDir}/barFrontend`),
+      fooBackend: new Service(join(testDir, 'fooBackend')),
+      fooFrontend: new Service(join(testDir, 'fooFrontend')),
+      barBackend: new Service(join(testDir, 'barBackend')),
+      barFrontend: new Service(join(testDir, 'barFrontend')),
     };
 
-    afterAll(() => {
-      rmdirSync(rootTestDir, { recursive: true });
+    beforeEach(() => {
+      mkdirSync(testDir, { recursive: true });
+    });
+
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
     });
 
     it('should parse a single backend service', () => {

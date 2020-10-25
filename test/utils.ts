@@ -1,3 +1,5 @@
+export const BASE_TEST_DIR = '../test';
+
 export function trimPadding(input: string): string {
   const lines = input.split(/\r?\n/);
   const firstNonEmptyLine = lines.find(line => !/^\s*$/.test(line));

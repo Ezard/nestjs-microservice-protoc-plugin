@@ -1,7 +1,8 @@
-import { rmdirSync } from 'fs';
+import { rmSync } from 'fs';
+import { join } from 'path';
 import { code } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
-import { trimPadding } from '../test/utils';
+import { BASE_TEST_DIR, trimPadding } from '../test/utils';
 import { Service } from './core';
 import { generateTypeMap, generateTypesContent, getImpFromTypeName, TypeMap } from './types';
 import DescriptorProto = google.protobuf.DescriptorProto;
@@ -13,6 +14,8 @@ import Type = google.protobuf.FieldDescriptorProto.Type;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 describe('types', () => {
+  const rootTestDir = join(BASE_TEST_DIR, 'types');
+
   describe('generateTypeMap', () => {
     it('should add types to the type map when no package name is specified', () => {
       const typeMap = generateTypeMap([
@@ -112,9 +115,17 @@ describe('types', () => {
   });
 
   describe('generateTypesContent', () => {
-    const rootDir = './generateTypesContent-test';
-    const service = new Service(rootDir);
+    const testDir = join(rootTestDir, 'generateTypesContent');
     const typeMap: TypeMap = new Map([['.Bar', { type: 'Bar', relativePath: 'foo.types' }]]);
+    let service: Service;
+
+    beforeEach(() => {
+      service = new Service(rootTestDir);
+    });
+
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
+    });
 
     it('should generate a Typescript interface with a single field from a Protobuf message', async () => {
       const messageType = new DescriptorProto({
@@ -424,12 +435,6 @@ describe('types', () => {
       `).trim();
 
       expect(trimmedResult).toEqual(expected);
-    });
-
-    afterAll(() => {
-      rmdirSync(`${rootDir}/generated`);
-      rmdirSync(`${rootDir}/protos`);
-      rmdirSync(`${rootDir}`);
     });
   });
 });

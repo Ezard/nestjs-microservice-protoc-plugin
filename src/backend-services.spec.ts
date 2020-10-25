@@ -1,11 +1,10 @@
-import { rmdirSync, rmSync, writeFileSync } from 'fs';
+import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { google } from 'ts-proto/build/pbjs';
-import { trimPadding } from '../test/utils';
+import { BASE_TEST_DIR, trimPadding } from '../test/utils';
 import { generateBackendContent, generateBackendMicroserviceOptionsFiles } from './backend-services';
 import { Service, Services } from './core';
 import { TypeMap } from './types';
-import { mkdirs } from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
@@ -13,27 +12,37 @@ import SourceCodeInfo = google.protobuf.SourceCodeInfo;
 import Location = google.protobuf.SourceCodeInfo.Location;
 
 describe('backend-services', () => {
+  const rootTestDir = join(BASE_TEST_DIR, 'backend-services');
+
+  beforeAll(() => {
+    mkdirSync(rootTestDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(rootTestDir, { recursive: true, force: true });
+  });
+
   describe('generateBackendContent', () => {
-    const rootDir = './generateBackendContent-test';
-    const service = new Service(rootDir);
-    const protosDir = './generateBackendContent-protos';
+    const testDir = join(rootTestDir, 'generateBackendContent');
+    const protosDir = join(testDir, 'protos');
     const protoFileName = './foo.proto';
     const typeMap: TypeMap = new Map([
       ['.Bar', { type: 'Bar', relativePath: 'bar/Bar' }],
       ['.Baz', { type: 'Baz', relativePath: 'baz/Baz' }],
     ]);
 
-    beforeAll(() => {
-      mkdirs(protosDir);
+    beforeEach(() => {
+      mkdirSync(testDir, { recursive: true });
+      mkdirSync(protosDir, { recursive: true });
       writeFileSync(join(protosDir, protoFileName), Buffer.from('syntax = "proto2";', 'utf-8'));
     });
 
-    afterAll(() => {
-      rmdirSync(rootDir, { recursive: true });
-      rmdirSync(protosDir, { recursive: true });
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
     });
 
     it('should emit the correct output when there are no services', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const fileDescriptorProto = new FileDescriptorProto({
         name: protoFileName,
         service: [],
@@ -50,6 +59,7 @@ describe('backend-services', () => {
     });
 
     it('should emit the correct output when there is one service', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const fileDescriptorProto = new FileDescriptorProto({
         name: protoFileName,
         service: [
@@ -95,6 +105,7 @@ describe('backend-services', () => {
     });
 
     it('should emit the correct output when there is more than one service', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const fileDescriptorProto = new FileDescriptorProto({
         name: protoFileName,
         service: [
@@ -164,6 +175,7 @@ describe('backend-services', () => {
     });
 
     it('should emit the correct output when the service has multiple methods', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const fileDescriptorProto = new FileDescriptorProto({
         name: protoFileName,
         service: [
@@ -215,6 +227,7 @@ describe('backend-services', () => {
     });
 
     it('should emit the correct output when a service has no methods', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const fileDescriptorProto = new FileDescriptorProto({
         name: protoFileName,
         service: [
@@ -240,15 +253,19 @@ describe('backend-services', () => {
     });
   });
   describe('generateBackendMicroserviceOptionsFiles', () => {
-    afterAll(() => {
-      rmdirSync('./foo/generated');
-      rmdirSync('./foo/protos');
-      rmdirSync('./foo');
+    const testDir = join(rootTestDir, 'generateBackendMicroserviceOptionsFiles');
+
+    beforeEach(() => {
+      mkdirSync(testDir, { recursive: true });
+    });
+
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
     });
 
     it('should emit the correct output when a single file is provided', async () => {
       const services: Services = {
-        foo: new Service('./foo'),
+        foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
         new FileDescriptorProto({
@@ -288,7 +305,7 @@ describe('backend-services', () => {
 
     it('should emit the correct output when a multiple files in the same package are provided', async () => {
       const services: Services = {
-        foo: new Service('./foo'),
+        foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
         new FileDescriptorProto({
@@ -339,7 +356,7 @@ describe('backend-services', () => {
 
     it('should emit the correct output when a multiple files in different packages are provided', async () => {
       const services: Services = {
-        foo: new Service('./foo'),
+        foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
         new FileDescriptorProto({
@@ -390,8 +407,8 @@ describe('backend-services', () => {
 
     it('should emit the correct output when a multiple backend services are defined', async () => {
       const services: Services = {
-        foo: new Service('./foo'),
-        bar: new Service('./bar'),
+        foo: new Service(join(testDir, 'foo')),
+        bar: new Service(join(testDir, 'bar')),
       };
       const fileDescriptorProtos = [
         new FileDescriptorProto({
@@ -444,13 +461,11 @@ describe('backend-services', () => {
 
       expect(result1).toEqual(expected1);
       expect(result2).toEqual(expected2);
-
-      rmSync('./bar', { recursive: true });
     });
 
     it('should not emit anything for frontend services', async () => {
       const services: Services = {
-        foo: new Service('./foo'),
+        foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
         new FileDescriptorProto({
