@@ -118,7 +118,7 @@ describe('core', () => {
 
       expect(fooBackendDetermined).toEqual(true);
     });
-    it('should parse a multiple backend services', () => {
+    it('should parse multiple backend services', () => {
       const fileDescriptorProto = new FileDescriptorProto({
         sourceCodeInfo: new SourceCodeInfo({
           location: [
@@ -152,7 +152,7 @@ describe('core', () => {
 
       expect(fooFrontendDetermined).toEqual(true);
     });
-    it('should parse a multiple frontend services', () => {
+    it('should parse multiple frontend services', () => {
       const fileDescriptorProto = new FileDescriptorProto({
         sourceCodeInfo: new SourceCodeInfo({
           location: [
