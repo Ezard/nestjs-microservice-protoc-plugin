@@ -114,9 +114,11 @@ describe('core', () => {
       });
 
       const result = determineServices(services, fileDescriptorProto);
-      const fooBackendDetermined = result.backendServices.includes(services['fooBackend']);
+      const fooBackendInBackends = result.backendServices.includes(services['fooBackend']);
+      const fooBackendInFrontends = result.frontendServices.includes(services['fooBackend']);
 
-      expect(fooBackendDetermined).toEqual(true);
+      expect(fooBackendInBackends).toEqual(true);
+      expect(fooBackendInFrontends).toEqual(false);
     });
     it('should parse multiple backend services', () => {
       const fileDescriptorProto = new FileDescriptorProto({
@@ -130,11 +132,15 @@ describe('core', () => {
       });
 
       const result = determineServices(services, fileDescriptorProto);
-      const fooBackendDetermined = result.backendServices.includes(services['fooBackend']);
-      const barBackendDetermined = result.backendServices.includes(services['barBackend']);
+      const fooBackendInBackends = result.backendServices.includes(services['fooBackend']);
+      const barBackendInBackends = result.backendServices.includes(services['barBackend']);
+      const fooBackendInFrontends = result.frontendServices.includes(services['fooBackend']);
+      const barBackendInFrontends = result.frontendServices.includes(services['barBackend']);
 
-      expect(fooBackendDetermined).toEqual(true);
-      expect(barBackendDetermined).toEqual(true);
+      expect(fooBackendInBackends).toEqual(true);
+      expect(barBackendInBackends).toEqual(true);
+      expect(fooBackendInFrontends).toEqual(false);
+      expect(barBackendInFrontends).toEqual(false);
     });
     it('should parse a single frontend service', () => {
       const fileDescriptorProto = new FileDescriptorProto({
@@ -148,9 +154,11 @@ describe('core', () => {
       });
 
       const result = determineServices(services, fileDescriptorProto);
-      const fooFrontendDetermined = result.frontendServices.includes(services['fooFrontend']);
+      const fooFrontendInFrontends = result.frontendServices.includes(services['fooFrontend']);
+      const fooFrontendInBackends = result.backendServices.includes(services['fooFrontend']);
 
-      expect(fooFrontendDetermined).toEqual(true);
+      expect(fooFrontendInFrontends).toEqual(true);
+      expect(fooFrontendInBackends).toEqual(false);
     });
     it('should parse multiple frontend services', () => {
       const fileDescriptorProto = new FileDescriptorProto({
@@ -164,11 +172,15 @@ describe('core', () => {
       });
 
       const result = determineServices(services, fileDescriptorProto);
-      const fooFrontendDetermined = result.frontendServices.includes(services['fooFrontend']);
-      const barFrontendDetermined = result.frontendServices.includes(services['barFrontend']);
+      const fooFrontendInFrontends = result.frontendServices.includes(services['fooFrontend']);
+      const barFrontendInFrontends = result.frontendServices.includes(services['barFrontend']);
+      const fooFrontendInBackends = result.backendServices.includes(services['fooFrontend']);
+      const barFrontendInBackends = result.backendServices.includes(services['barFrontend']);
 
-      expect(fooFrontendDetermined).toEqual(true);
-      expect(barFrontendDetermined).toEqual(true);
+      expect(fooFrontendInFrontends).toEqual(true);
+      expect(barFrontendInFrontends).toEqual(true);
+      expect(fooFrontendInBackends).toEqual(false);
+      expect(barFrontendInBackends).toEqual(false);
     });
     it('should parse multiple backend services and multiple frontend services', () => {
       const fileDescriptorProto = new FileDescriptorProto({
@@ -184,15 +196,26 @@ describe('core', () => {
       });
 
       const result = determineServices(services, fileDescriptorProto);
-      const fooBackendDetermined = result.backendServices.includes(services['fooBackend']);
-      const barBackendDetermined = result.backendServices.includes(services['barBackend']);
-      const fooFrontendDetermined = result.frontendServices.includes(services['fooFrontend']);
-      const barFrontendDetermined = result.frontendServices.includes(services['barFrontend']);
 
-      expect(fooBackendDetermined).toEqual(true);
-      expect(barBackendDetermined).toEqual(true);
-      expect(fooFrontendDetermined).toEqual(true);
-      expect(barFrontendDetermined).toEqual(true);
+      const fooBackendInBackends = result.backendServices.includes(services['fooBackend']);
+      const barBackendInBackends = result.backendServices.includes(services['barBackend']);
+      const fooFrontendInFrontends = result.frontendServices.includes(services['fooFrontend']);
+      const barFrontendInFrontends = result.frontendServices.includes(services['barFrontend']);
+
+      const fooBackendInFrontends = result.frontendServices.includes(services['fooBackend']);
+      const barBackendInFrontends = result.frontendServices.includes(services['barBackend']);
+      const fooFrontendInBackends = result.backendServices.includes(services['fooFrontend']);
+      const barFrontendInBackends = result.backendServices.includes(services['barFrontend']);
+
+      expect(fooBackendInBackends).toEqual(true);
+      expect(barBackendInBackends).toEqual(true);
+      expect(fooFrontendInFrontends).toEqual(true);
+      expect(barFrontendInFrontends).toEqual(true);
+
+      expect(fooBackendInFrontends).toEqual(false);
+      expect(barBackendInFrontends).toEqual(false);
+      expect(fooFrontendInBackends).toEqual(false);
+      expect(barFrontendInBackends).toEqual(false);
     });
     it('should return empty arrays when no services are parsed due to lack of leading detached comments', () => {
       const fileDescriptorProto = new FileDescriptorProto();
