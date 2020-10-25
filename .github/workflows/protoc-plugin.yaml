@@ -1,4 +1,4 @@
-name: Protoc Plugin
+name: CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  CI:
+  Lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,7 +29,46 @@ jobs:
         run: npm run lint:prettier
       - name: Lint with ESLint
         run: npm run lint:eslint
+  Unit Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Node.js for use with actions
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.14
+      - name: Setup dependency cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: npm ci
       - name: Run unit tests
         run: npm run test:unit:cov
+  Mutation Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Node.js for use with actions
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.14
+      - name: Setup dependency cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: npm ci
       - name: Run mutation tests
         run: npm run test:mutation
+
