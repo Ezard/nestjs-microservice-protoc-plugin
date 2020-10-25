@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  Lint:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,7 +29,7 @@ jobs:
         run: npm run lint:prettier
       - name: Lint with ESLint
         run: npm run lint:eslint
-  Unit Test:
+  test_unit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -50,7 +50,7 @@ jobs:
         run: npm ci
       - name: Run unit tests
         run: npm run test:unit:cov
-  Mutation Test:
+  test_mutation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
