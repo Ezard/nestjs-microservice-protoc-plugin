@@ -25,14 +25,13 @@ describe('backend-services', () => {
   describe('generateBackendContent', () => {
     const testDir = join(rootTestDir, 'generateBackendContent');
     const protosDir = join(testDir, 'protos');
-    const protoFileName = './foo.proto';
+    const protoFileName = 'foo.proto';
     const typeMap: TypeMap = new Map([
       ['.Bar', { type: 'Bar', relativePath: 'bar/Bar' }],
       ['.Baz', { type: 'Baz', relativePath: 'baz/Baz' }],
     ]);
 
     beforeEach(() => {
-      mkdirSync(testDir, { recursive: true });
       mkdirSync(protosDir, { recursive: true });
       writeFileSync(join(protosDir, protoFileName), Buffer.from('syntax = "proto2";', 'utf-8'));
     });
