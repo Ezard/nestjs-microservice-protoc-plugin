@@ -463,6 +463,46 @@ describe('backend-services', () => {
       expect(result2).toEqual(expected2);
     });
 
+    it('should emit the correct output when a single file with multiple package levels is provided', async () => {
+      const services: Services = {
+        foo: new Service(join(testDir, 'foo')),
+      };
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: './foo/bar/foo.proto',
+          package: 'foo.bar',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['backend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
+      const result = files[0].content.trim();
+
+      const expected = trimPadding(`
+        /* eslint-disable */
+        import { GrpcOptions, Transport } from '@nestjs/microservices';
+
+        export function getBackendMicroserviceOptions(url: string): GrpcOptions {
+          return {
+            transport: Transport.GRPC,
+            options: {
+              package: ['foo.bar'],
+              protoPath: ['../protos/foo/bar/foo.proto'],
+              url,
+            },
+          };
+        }
+      `).trim();
+
+      expect(result).toEqual(expected);
+    });
+
     it('should not emit anything for frontend services', async () => {
       const services: Services = {
         foo: new Service(join(testDir, 'foo')),

@@ -100,7 +100,7 @@ export function generateBackendMicroserviceOptionsFiles(
     }, [] as { service: Service; fileDescriptorProtos: FileDescriptorProto[] }[])
     .flatMap(({ service, fileDescriptorProtos }) => {
       const packages = fileDescriptorProtos
-        .map(fileDescriptorProto => quote(normalize(fileDescriptorProto.package.replace('.', '/'))))
+        .map(fileDescriptorProto => quote(fileDescriptorProto.package))
         .filter((value, index, array) => array.indexOf(value) === index)
         .join(',');
       const protoPaths = fileDescriptorProtos
