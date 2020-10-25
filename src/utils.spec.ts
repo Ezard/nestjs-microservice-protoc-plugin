@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, rmdirSync } from 'fs';
+import { rmdirSync } from 'fs';
 import { join } from 'path';
 import { util } from 'protobufjs';
 import { PassThrough } from 'stream';
@@ -12,7 +12,6 @@ import {
   createCodeGeneratorResponseFile,
   createCodeGeneratorResponseFileForBackendMicroserviceOptions,
   getMethodDefinition,
-  mkdirs,
   readToBuffer,
 } from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
@@ -189,41 +188,6 @@ describe('utils', () => {
       `).trim();
 
       expect(result).toEqual(expected);
-    });
-  });
-
-  describe('mkdirs', () => {
-    const dirs = ['utils-mkdirs-test', 'foo', 'bar', 'baz'];
-    const path = dirs.join('/');
-
-    afterEach(() => {
-      dirs.map((dir, index) => dirs.slice(0, dirs.length - index).join('/')).forEach(dir => rmdirSync(dir));
-    });
-
-    it('should should create all directories if none exist', () => {
-      mkdirs(path);
-
-      expect(existsSync(path)).toBe(true);
-    });
-
-    it('should create non-existent directories if some exist', () => {
-      for (let i = 0; i < 2; i++) {
-        mkdirSync(dirs.slice(0, i + 1).join('/'));
-      }
-
-      mkdirs(path);
-
-      expect(existsSync(path)).toBe(true);
-    });
-
-    it('should not create any directories if they all exist', () => {
-      for (let i = 0; i < dirs.length; i++) {
-        mkdirSync(dirs.slice(0, i + 1).join('/'));
-      }
-
-      mkdirs(path);
-
-      expect(existsSync(path)).toBe(true);
     });
   });
 });

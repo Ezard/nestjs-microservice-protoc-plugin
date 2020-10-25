@@ -1,4 +1,3 @@
-import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { util } from 'protobufjs';
 import { code, Code, imp } from 'ts-poet';
@@ -87,11 +86,4 @@ function getOutputType(outputType: string, typeMap: TypeMap): Code {
 
 export function getMethodDefinition({ name, inputType, outputType }: MethodDescriptorProto, typeMap: TypeMap): Code {
   return code`${name}(request: ${getInputType(inputType, typeMap)}): ${getOutputType(outputType, typeMap)}`;
-}
-
-export function mkdirs(path: string): void {
-  if (!existsSync(path)) {
-    mkdirs(join(path, '..'));
-    mkdirSync(path);
-  }
 }

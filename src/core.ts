@@ -1,7 +1,6 @@
-import { readFileSync } from 'fs';
+import { mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { google } from 'ts-proto/build/pbjs';
-import { mkdirs } from './utils';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 export class Service {
@@ -11,8 +10,8 @@ export class Service {
   constructor(private readonly rootDir: string) {
     this.generatedDir = join(this.rootDir, 'generated');
     this.protosDir = join(this.rootDir, 'protos');
-    mkdirs(this.generatedDir);
-    mkdirs(this.protosDir);
+    mkdirSync(this.generatedDir, { recursive: true });
+    mkdirSync(this.protosDir, { recursive: true });
   }
 }
 
