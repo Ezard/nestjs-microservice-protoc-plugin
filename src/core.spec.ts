@@ -194,8 +194,26 @@ describe('core', () => {
       expect(fooFrontendDetermined).toEqual(true);
       expect(barFrontendDetermined).toEqual(true);
     });
-    it('should return empty arrays when no services are parsed', () => {
+    it('should return empty arrays when no services are parsed due to lack of leading detached comments', () => {
       const fileDescriptorProto = new FileDescriptorProto();
+
+      const result = determineServices(services, fileDescriptorProto);
+      const numBackendServices = result.backendServices.length;
+      const numFrontendServices = result.frontendServices.length;
+
+      expect(numBackendServices).toEqual(0);
+      expect(numFrontendServices).toEqual(0);
+    });
+    it('should return empty arrays when no services are parsed due to an empty leading detached comments array', () => {
+      const fileDescriptorProto = new FileDescriptorProto({
+        sourceCodeInfo: new SourceCodeInfo({
+          location: [
+            new Location({
+              leadingDetachedComments: [],
+            }),
+          ],
+        }),
+      });
 
       const result = determineServices(services, fileDescriptorProto);
       const numBackendServices = result.backendServices.length;
