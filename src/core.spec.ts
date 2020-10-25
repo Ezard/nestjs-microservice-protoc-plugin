@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { google } from 'ts-proto/build/pbjs';
 import { BASE_TEST_DIR } from '../test/utils';
-import { determineServices, loadServices, Service, Services } from './core';
+import { determineServices, generateFiles, loadServices, Service, Services } from './core';
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 import SourceCodeInfo = google.protobuf.SourceCodeInfo;
 import Location = google.protobuf.SourceCodeInfo.Location;
@@ -244,6 +244,106 @@ describe('core', () => {
 
       expect(numBackendServices).toEqual(0);
       expect(numFrontendServices).toEqual(0);
+    });
+  });
+
+  describe('generateFiles', () => {
+    const testDir = join(rootTestDir, 'generateFiles');
+    const servicesFile = join(testDir, 'services.json');
+    const protosDir = join(testDir, 'protos');
+
+    beforeEach(() => {
+      mkdirSync(testDir, { recursive: true });
+      writeFileSync(
+        servicesFile,
+        JSON.stringify({
+          foo: {
+            rootDir: join(testDir, 'foo'),
+          },
+        }),
+        { encoding: 'utf-8' },
+      );
+    });
+
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
+    });
+
+    it('should generate types files for backend services', async () => {
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: 'foo.proto',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['backend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
+      const typesFile = result.find(file => file.name.endsWith('.types.ts'));
+
+      expect(typesFile).toBeDefined();
+    });
+    it('should generate types files for frontend services', async () => {
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: 'foo.proto',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['frontend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
+      const typesFile = result.find(file => file.name.endsWith('.types.ts'));
+
+      expect(typesFile).toBeDefined();
+    });
+    it('should generate backend files for backend services', async () => {
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: 'foo.proto',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['backend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
+      const typesFile = result.find(file => file.name.endsWith('.backend.ts'));
+
+      expect(typesFile).toBeDefined();
+    });
+    it('should generate frontend files for frontend services', async () => {
+      const fileDescriptorProtos = [
+        new FileDescriptorProto({
+          name: 'foo.proto',
+          sourceCodeInfo: new SourceCodeInfo({
+            location: [
+              new Location({
+                leadingDetachedComments: ['frontend-services=foo'],
+              }),
+            ],
+          }),
+        }),
+      ];
+
+      const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
+      const typesFile = result.find(file => file.name.endsWith('.frontend.ts'));
+
+      expect(typesFile).toBeDefined();
     });
   });
 });

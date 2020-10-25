@@ -1,6 +1,10 @@
 import { mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { google } from 'ts-proto/build/pbjs';
+import { generateBackendContent, generateBackendMicroserviceOptionsFiles } from './backend-services';
+import { generateFrontendContent } from './frontend-services';
+import { generateTypeMap, generateTypesContent } from './types';
+import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 export class Service {
@@ -59,4 +63,28 @@ export function determineServices(
       frontendServices: [],
     };
   }
+}
+
+export async function generateFiles(
+  fileDescriptorProtos: FileDescriptorProto[],
+  servicesFile: string,
+  protosDir: string,
+): Promise<CodeGeneratorResponse.File[]> {
+  const services = loadServices(servicesFile);
+  const typeMap = generateTypeMap(fileDescriptorProtos);
+  const typesFrontendBackendFiles = Promise.all(
+    fileDescriptorProtos.flatMap(fileDescriptorProto => {
+      const { backendServices, frontendServices } = determineServices(services, fileDescriptorProto);
+      const allServices = [backendServices, frontendServices].flat();
+      return [
+        ...allServices.map(service => generateTypesContent(service, fileDescriptorProto, typeMap)),
+        ...backendServices.map(service => generateBackendContent(service, protosDir, fileDescriptorProto, typeMap)),
+        ...frontendServices.map(service => generateFrontendContent(service, protosDir, fileDescriptorProto, typeMap)),
+      ];
+    }),
+  );
+  const backendMicroserviceOptionsFiles = Promise.all(
+    generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos),
+  );
+  return [...(await typesFrontendBackendFiles).flat(), ...(await backendMicroserviceOptionsFiles)];
 }

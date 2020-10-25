@@ -1,36 +1,10 @@
 import { google } from 'ts-proto/build/pbjs';
 import { promisify } from 'util';
-import { generateBackendContent, generateBackendMicroserviceOptionsFiles } from './backend-services';
-import { determineServices, loadServices, Services } from './core';
-import { generateFrontendContent } from './frontend-services';
-import { generateTypeMap, generateTypesContent, TypeMap } from './types';
+import { generateFiles } from './core';
 import { readToBuffer } from './utils';
 import CodeGeneratorRequest = google.protobuf.compiler.CodeGeneratorRequest;
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import Feature = google.protobuf.compiler.CodeGeneratorResponse.Feature;
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-
-async function generateFiles(
-  services: Services,
-  protosDir: string,
-  fileDescriptorProto: FileDescriptorProto,
-  typeMap: TypeMap,
-): Promise<CodeGeneratorResponse.File[]> {
-  const { backendServices, frontendServices } = determineServices(services, fileDescriptorProto);
-  return [
-    ...(await Promise.all(
-      [...backendServices, ...frontendServices].map(service =>
-        generateTypesContent(service, fileDescriptorProto, typeMap),
-      ),
-    )),
-    ...(await Promise.all(
-      backendServices.map(service => generateBackendContent(service, protosDir, fileDescriptorProto, typeMap)),
-    )),
-    ...(await Promise.all(
-      frontendServices.map(service => generateFrontendContent(service, protosDir, fileDescriptorProto, typeMap)),
-    )),
-  ];
-}
 
 async function main() {
   const input = await readToBuffer(process.stdin);
@@ -47,18 +21,8 @@ async function main() {
     throw new Error('"services_file" parameter must be specified e.g. --ts_proto_opt=services_file=services.json');
   }
 
-  const services = loadServices(servicesFile);
-  const typeMap = generateTypeMap(request.protoFile);
-  const files = [
-    ...(
-      await Promise.all(
-        request.protoFile.flatMap(fileDescriptorProto =>
-          generateFiles(services, protosDir, fileDescriptorProto, typeMap),
-        ),
-      )
-    ).reduce((acc, cur) => acc.concat(cur), []),
-    ...(await Promise.all(generateBackendMicroserviceOptionsFiles(services, request.protoFile))),
-  ];
+  const files = await generateFiles(request.protoFile, servicesFile, protosDir);
+
   const response = new CodeGeneratorResponse({
     file: files,
     supportedFeatures: Feature.FEATURE_PROTO3_OPTIONAL,
