@@ -39,6 +39,5 @@ main()
   .catch(e => {
     process.stderr.write('FAILED');
     process.stderr.write(e.message);
-    process.stderr.write(e.stack);
     process.exit(1);
   });
