@@ -72,7 +72,7 @@ describe('utils', () => {
         code``,
       );
 
-      expect(result.name.endsWith(`.${type}.ts`)).toBe(true);
+      expect(result.name.endsWith(`foo.${type}.ts`)).toBe(true);
     });
 
     it('should prefix code content with a comment to disable ESLint', async () => {
