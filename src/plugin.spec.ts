@@ -39,16 +39,14 @@ describe('plugin', () => {
           protoFile: [],
         }),
       );
-      const processExit = jest.spyOn(process, 'exit').mockImplementation(code => {
-        console.log('exiting with code:', code);
-        return {} as never;
-      });
+      // const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      process.exit = (jest.fn() as unknown) as (code: number) => never;
 
       jest.isolateModules(() => require('./plugin'));
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      expect(processExit).toHaveBeenCalledWith(0);
+      expect(process.exit).toHaveBeenCalledWith(0);
     });
     it('should pass files array, services file and protos directory to generateFiles function', async () => {
       generateFiles.mockReturnValue([]);
