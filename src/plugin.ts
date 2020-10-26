@@ -32,9 +32,7 @@ async function main() {
 
 main()
   .then(() => {
-    console.log('exiting');
     process.exit(0);
-    console.log('exit');
   })
   .catch(e => {
     process.stderr.write('FAILED');
