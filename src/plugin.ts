@@ -1,9 +1,6 @@
 import { google } from 'ts-proto/build/pbjs';
-import { promisify } from 'util';
-import { generateFiles } from './core';
 import { readToBuffer } from './utils';
 import CodeGeneratorRequest = google.protobuf.compiler.CodeGeneratorRequest;
-import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 
 async function main() {
   const input = await readToBuffer(process.stdin);
@@ -20,14 +17,14 @@ async function main() {
     throw new Error('"protos_dir" parameter must be specified e.g. --ts_proto_opt=protos_dir=../protos');
   }
 
-  const files = await generateFiles(request.protoFile, servicesFile, protosDir);
+  /*const files = await generateFiles(request.protoFile, servicesFile, protosDir);
 
   const response = new CodeGeneratorResponse({
     file: files,
   });
   const buffer = CodeGeneratorResponse.encode(response).finish();
   const write = promisify(process.stdout.write as (buffer: Buffer) => boolean).bind(process.stdout);
-  await write(Buffer.from(buffer));
+  await write(Buffer.from(buffer));*/
 }
 
 main()
