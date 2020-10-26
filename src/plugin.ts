@@ -4,7 +4,6 @@ import { generateFiles } from './core';
 import { readToBuffer } from './utils';
 import CodeGeneratorRequest = google.protobuf.compiler.CodeGeneratorRequest;
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
-import Feature = google.protobuf.compiler.CodeGeneratorResponse.Feature;
 
 async function main() {
   const input = await readToBuffer(process.stdin);
@@ -25,7 +24,6 @@ async function main() {
 
   const response = new CodeGeneratorResponse({
     file: files,
-    supportedFeatures: Feature.FEATURE_PROTO3_OPTIONAL,
   });
   const buffer = CodeGeneratorResponse.encode(response).finish();
   const write = promisify(process.stdout.write as (buffer: Buffer) => boolean).bind(process.stdout);
