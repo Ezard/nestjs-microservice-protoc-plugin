@@ -39,7 +39,10 @@ describe('plugin', () => {
           protoFile: [],
         }),
       );
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      const processExit = jest.spyOn(process, 'exit').mockImplementation(code => {
+        console.log('exiting with code:', code);
+        return {} as never;
+      });
 
       jest.isolateModules(() => require('./plugin'));
 
@@ -65,7 +68,10 @@ describe('plugin', () => {
           protoFile: fileDescriptorProtos,
         }),
       );
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      const processExit = jest.spyOn(process, 'exit').mockImplementation(code => {
+        console.log('exiting with code:', code);
+        return {} as never;
+      });
 
       jest.isolateModules(() => require('./plugin'));
 
@@ -96,7 +102,10 @@ describe('plugin', () => {
       );
       const codeGeneratorResponseEncode = jest.fn().mockReturnValue(new Writer());
       jest.spyOn(CodeGeneratorResponse, 'encode').mockImplementation(codeGeneratorResponseEncode);
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      const processExit = jest.spyOn(process, 'exit').mockImplementation(code => {
+        console.log('exiting with code:', code);
+        return {} as never;
+      });
 
       jest.isolateModules(() => require('./plugin'));
 
