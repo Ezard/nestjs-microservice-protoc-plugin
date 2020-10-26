@@ -1,4 +1,6 @@
-export const BASE_TEST_DIR = '../test';
+import { join } from 'path';
+
+export const BASE_TEST_DIR = join('../test', String(process.pid));
 
 export function trimPadding(input: string): string {
   const lines = input.split(/\r?\n/);
