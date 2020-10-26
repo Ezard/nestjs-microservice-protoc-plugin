@@ -46,7 +46,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(5);
+      await nextNTicks(50);
 
       expect(processExit).toHaveBeenCalledWith(0);
     });
