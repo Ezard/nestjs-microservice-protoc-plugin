@@ -1,10 +1,10 @@
-import { rmdirSync } from 'fs';
+import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { util } from 'protobufjs';
 import { PassThrough } from 'stream';
 import { code, imp } from 'ts-poet';
 import { google } from 'ts-proto/build/pbjs';
-import { trimPadding } from '../test/utils';
+import { BASE_TEST_DIR, trimPadding } from '../test/utils';
 import { Service } from './core';
 import { TypeMap } from './types';
 import {
@@ -24,6 +24,16 @@ jest.mock('./types', () => ({
 }));
 
 describe('utils', () => {
+  const rootTestDir = join(BASE_TEST_DIR, 'utils');
+
+  beforeAll(() => {
+    mkdirSync(rootTestDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(rootTestDir, { recursive: true, force: true });
+  });
+
   describe('readToBuffer', () => {
     it('should return the contents of the stream as a buffer', async () => {
       const stream = new PassThrough();
@@ -42,19 +52,8 @@ describe('utils', () => {
   });
 
   describe('createCodeGeneratorResponseFile', () => {
-    const rootDir = 'createCodeGeneratorResponseFile-test';
+    const testDir = join(rootTestDir, 'createCodeGeneratorResponseFile');
     const fileName = 'foo.proto';
-    let service: Service;
-
-    beforeEach(() => {
-      service = new Service(rootDir);
-    });
-
-    afterEach(() => {
-      rmdirSync(service.generatedDir);
-      rmdirSync(service.protosDir);
-      rmdirSync(rootDir);
-    });
 
     it.each`
       type
@@ -62,6 +61,7 @@ describe('utils', () => {
       ${'backend'}
       ${'frontend'}
     `('should use .$type.ts as the file extension when the type is $type', async ({ type }) => {
+      const service = new Service(join(testDir, 'foo'));
       const result = await createCodeGeneratorResponseFile(
         service,
         new FileDescriptorProto({
@@ -76,6 +76,7 @@ describe('utils', () => {
     });
 
     it('should prefix code content with a comment to disable ESLint', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const codeContent = code`
         class Foo {}
 
@@ -104,6 +105,7 @@ describe('utils', () => {
     `(
       "should use '$importPath' as the import path when the package is '$packageName'",
       async ({ packageName, importPath }) => {
+        const service = new Service(join(testDir, 'foo'));
         const codeContent = code`
         class Foo {}
 
@@ -127,10 +129,10 @@ describe('utils', () => {
   });
 
   describe('createCodeGeneratorResponseFileForBackendMicroserviceOptions', () => {
-    const rootDir = 'createCodeGeneratorResponseFile-test';
-    const service = new Service(rootDir);
+    const testDir = join(rootTestDir, 'createCodeGeneratorResponseFileForBackendMicroserviceOptions');
 
     it("should generate the file in the service's 'generated' directory", async () => {
+      const service = new Service(join(testDir, 'foo'));
       const result = await createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, code``);
 
       const expectedFilePath = normalize(join(service.generatedDir, 'backend-microservice-options.ts'));
@@ -139,6 +141,7 @@ describe('utils', () => {
     });
 
     it('should prefix code content with a comment to disable ESLint', async () => {
+      const service = new Service(join(testDir, 'foo'));
       const result = await createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, code``);
       const lines = result.content.split(/\r\n?|\n/);
 
@@ -166,7 +169,6 @@ describe('utils', () => {
 
   describe('getMethodDefinition', () => {
     it('should render based on the provided input and output', () => {
-      // use code.toString()
       const name = 'Foo';
       const inputType = 'Bar';
       const outputType = 'Baz';
