@@ -4,6 +4,12 @@ import CodeGeneratorRequest = google.protobuf.compiler.CodeGeneratorRequest;
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
+async function nextNTicks(n: number): Promise<void> {
+  for (let i = 0; i < n; i++) {
+    await new Promise(process.nextTick);
+  }
+}
+
 describe('plugin', () => {
   describe('main', () => {
     let generateFiles: jest.Mock<unknown, unknown[]>;
@@ -37,8 +43,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await new Promise(process.nextTick);
-      await new Promise(process.nextTick);
+      await nextNTicks(5);
 
       expect(processExit).toHaveBeenCalledWith(0);
     });
@@ -64,8 +69,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await new Promise(process.nextTick);
-      await new Promise(process.nextTick);
+      await nextNTicks(5);
 
       expect(processExit).toHaveBeenCalledWith(0);
       expect(generateFiles).toHaveBeenCalledWith(fileDescriptorProtos, servicesFile, protosDir);
@@ -96,8 +100,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await new Promise(process.nextTick);
-      await new Promise(process.nextTick);
+      await nextNTicks(5);
 
       expect(processExit).toHaveBeenCalledWith(0);
       expect(codeGeneratorResponseEncode).toHaveBeenCalledWith(new CodeGeneratorResponse({ file: files }));
@@ -112,7 +115,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await new Promise(process.nextTick);
+      await nextNTicks(5);
 
       expect(processStderrWrite).toHaveBeenNthCalledWith(1, 'FAILED');
       expect(processStderrWrite).toHaveBeenNthCalledWith(
@@ -131,7 +134,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await new Promise(process.nextTick);
+      await nextNTicks(5);
 
       expect(processStderrWrite).toHaveBeenNthCalledWith(1, 'FAILED');
       expect(processStderrWrite).toHaveBeenNthCalledWith(
