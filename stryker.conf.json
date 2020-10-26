@@ -12,6 +12,5 @@
   "tsconfigFile": "tsconfig.json",
   "checkers": [
     "typescript"
-  ],
-  "concurrency": 1
+  ]
 }
