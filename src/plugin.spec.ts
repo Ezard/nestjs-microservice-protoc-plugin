@@ -4,12 +4,6 @@ import CodeGeneratorRequest = google.protobuf.compiler.CodeGeneratorRequest;
 import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
 import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
-async function nextNTicks(n: number): Promise<void> {
-  for (let i = 0; i < n; i++) {
-    await new Promise(process.nextTick);
-  }
-}
-
 describe('plugin', () => {
   describe('main', () => {
     let generateFiles: jest.Mock<unknown, unknown[]>;
@@ -29,6 +23,34 @@ describe('plugin', () => {
       jest.clearAllMocks();
     });
 
+    function nextTick(): Promise<void> {
+      return new Promise(process.nextTick);
+    }
+
+    function mockProcessStdoutWrite(): jest.SpyInstance<
+      ReturnType<Required<NodeJS.WriteStream & { fd: 1 }>['write']>,
+      jest.ArgsType<Required<NodeJS.WriteStream & { fd: 1 }>['write']>
+    > {
+      return jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
+        ((cb as unknown) as () => void)();
+        return true;
+      });
+    }
+
+    function mockProcessStderrWrite(): jest.SpyInstance<
+      ReturnType<Required<NodeJS.WriteStream & { fd: 2 }>['write']>,
+      jest.ArgsType<Required<NodeJS.WriteStream & { fd: 2 }>['write']>
+    > {
+      return jest.spyOn(process.stderr, 'write').mockImplementation();
+    }
+
+    function mockProcessExit(): jest.SpyInstance<
+      ReturnType<Required<NodeJS.Process>['exit']>,
+      jest.ArgsType<Required<NodeJS.Process>['exit']>
+    > {
+      return jest.spyOn(process, 'exit').mockImplementation();
+    }
+
     it('should exit the current process when successful', async () => {
       generateFiles.mockReturnValue([]);
       const servicesFile = 'services.json';
@@ -39,15 +61,12 @@ describe('plugin', () => {
           protoFile: [],
         }),
       );
-      jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
-        ((cb as unknown) as () => void)();
-        return true;
-      });
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      mockProcessStdoutWrite();
+      const processExit = mockProcessExit();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(1);
+      await nextTick();
 
       expect(processExit).toHaveBeenCalledWith(0);
     });
@@ -69,15 +88,12 @@ describe('plugin', () => {
           protoFile: fileDescriptorProtos,
         }),
       );
-      jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
-        ((cb as unknown) as () => void)();
-        return true;
-      });
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      mockProcessStdoutWrite();
+      const processExit = mockProcessExit();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(1);
+      await nextTick();
 
       expect(processExit).toHaveBeenCalledWith(0);
       expect(generateFiles).toHaveBeenCalledWith(fileDescriptorProtos, servicesFile, protosDir);
@@ -104,15 +120,12 @@ describe('plugin', () => {
       );
       const codeGeneratorResponseEncode = jest.fn().mockReturnValue(new Writer());
       jest.spyOn(CodeGeneratorResponse, 'encode').mockImplementation(codeGeneratorResponseEncode);
-      jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
-        ((cb as unknown) as () => void)();
-        return true;
-      });
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      mockProcessStdoutWrite();
+      const processExit = mockProcessExit();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(1);
+      await nextTick();
 
       expect(processExit).toHaveBeenCalledWith(0);
       expect(codeGeneratorResponseEncode).toHaveBeenCalledWith(new CodeGeneratorResponse({ file: files }));
@@ -122,12 +135,12 @@ describe('plugin', () => {
       jest
         .spyOn(CodeGeneratorRequest, 'decode')
         .mockReturnValue(new CodeGeneratorRequest({ parameter: 'protos_dir=protos' }));
-      const processStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation();
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      const processStderrWrite = mockProcessStderrWrite();
+      const processExit = mockProcessExit();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(1);
+      await nextTick();
 
       expect(processStderrWrite).toHaveBeenNthCalledWith(1, 'FAILED');
       expect(processStderrWrite).toHaveBeenNthCalledWith(
@@ -141,12 +154,12 @@ describe('plugin', () => {
       jest
         .spyOn(CodeGeneratorRequest, 'decode')
         .mockReturnValue(new CodeGeneratorRequest({ parameter: 'services_file=services.json' }));
-      const processStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation();
-      const processExit = jest.spyOn(process, 'exit').mockImplementation();
+      const processStderrWrite = mockProcessStderrWrite();
+      const processExit = mockProcessExit();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(1);
+      await nextTick();
 
       expect(processStderrWrite).toHaveBeenNthCalledWith(1, 'FAILED');
       expect(processStderrWrite).toHaveBeenNthCalledWith(
