@@ -1,4 +1,5 @@
 import { google } from 'ts-proto/build/pbjs';
+import { promisify } from 'util';
 import { generateFiles } from './core';
 import { readToBuffer } from './utils';
 import CodeGeneratorRequest = google.protobuf.compiler.CodeGeneratorRequest;
@@ -25,8 +26,8 @@ async function main() {
     file: files,
   });
   const buffer = CodeGeneratorResponse.encode(response).finish();
-  /*const write = promisify(process.stdout.write as (buffer: Buffer) => boolean).bind(process.stdout);
-  await write(Buffer.from(buffer));*/
+  const write = promisify(process.stdout.write as (buffer: Buffer) => boolean).bind(process.stdout);
+  await write(Buffer.from(buffer));
 }
 
 main()
