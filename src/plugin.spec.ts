@@ -39,11 +39,15 @@ describe('plugin', () => {
           protoFile: [],
         }),
       );
+      jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
+        ((cb as unknown) as () => void)();
+        return true;
+      });
       const processExit = jest.spyOn(process, 'exit').mockImplementation();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(5);
+      await nextNTicks(1);
 
       expect(processExit).toHaveBeenCalledWith(0);
     });
@@ -65,14 +69,15 @@ describe('plugin', () => {
           protoFile: fileDescriptorProtos,
         }),
       );
-      const processExit = jest.spyOn(process, 'exit').mockImplementation(code => {
-        console.log('exiting with code:', code);
-        return {} as never;
+      jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
+        ((cb as unknown) as () => void)();
+        return true;
       });
+      const processExit = jest.spyOn(process, 'exit').mockImplementation();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(5);
+      await nextNTicks(1);
 
       expect(processExit).toHaveBeenCalledWith(0);
       expect(generateFiles).toHaveBeenCalledWith(fileDescriptorProtos, servicesFile, protosDir);
@@ -99,14 +104,15 @@ describe('plugin', () => {
       );
       const codeGeneratorResponseEncode = jest.fn().mockReturnValue(new Writer());
       jest.spyOn(CodeGeneratorResponse, 'encode').mockImplementation(codeGeneratorResponseEncode);
-      const processExit = jest.spyOn(process, 'exit').mockImplementation(code => {
-        console.log('exiting with code:', code);
-        return {} as never;
+      jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
+        ((cb as unknown) as () => void)();
+        return true;
       });
+      const processExit = jest.spyOn(process, 'exit').mockImplementation();
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(5);
+      await nextNTicks(1);
 
       expect(processExit).toHaveBeenCalledWith(0);
       expect(codeGeneratorResponseEncode).toHaveBeenCalledWith(new CodeGeneratorResponse({ file: files }));
@@ -121,7 +127,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(5);
+      await nextNTicks(1);
 
       expect(processStderrWrite).toHaveBeenNthCalledWith(1, 'FAILED');
       expect(processStderrWrite).toHaveBeenNthCalledWith(
@@ -140,7 +146,7 @@ describe('plugin', () => {
 
       jest.isolateModules(() => require('./plugin'));
 
-      await nextNTicks(5);
+      await nextNTicks(1);
 
       expect(processStderrWrite).toHaveBeenNthCalledWith(1, 'FAILED');
       expect(processStderrWrite).toHaveBeenNthCalledWith(
