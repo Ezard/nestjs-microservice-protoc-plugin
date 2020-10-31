@@ -115,3 +115,9 @@ fabric.properties
 
 dist
 /uploads
+
+src/generated
+src/protos
+
+stryker-tmp
+reports
