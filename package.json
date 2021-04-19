@@ -20,7 +20,7 @@
   "dependencies": {
     "protobufjs": "^6.10.1",
     "sequency": "^0.19.2",
-    "ts-poet": "^3.2.2"
+    "ts-poet": "^3.3.1"
   },
   "devDependencies": {
     "@stryker-mutator/core": "4.3.1",
