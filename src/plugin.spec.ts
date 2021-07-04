@@ -32,7 +32,7 @@ describe('plugin', () => {
       jest.ArgsType<Required<NodeJS.WriteStream & { fd: 1 }>['write']>
     > {
       return jest.spyOn(process.stdout, 'write').mockImplementation((buffer, cb) => {
-        ((cb as unknown) as () => void)();
+        (cb as unknown as () => void)();
         return true;
       });
     }
