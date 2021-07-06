@@ -32,7 +32,7 @@ describe('utils', () => {
   });
 
   describe('createGeneratedFile', () => {
-    const testDir = join(rootTestDir, 'createCodeGeneratorResponseFile');
+    const testDir = join(rootTestDir, 'createGeneratedFile');
     const fileName = 'foo.proto';
 
     it.each`
@@ -109,7 +109,7 @@ describe('utils', () => {
   });
 
   describe('createGeneratedFileForBackendMicroserviceOptions', () => {
-    const testDir = join(rootTestDir, 'createCodeGeneratorResponseFileForBackendMicroserviceOptions');
+    const testDir = join(rootTestDir, 'createGeneratedFileForBackendMicroserviceOptions');
 
     it("should generate the file in the service's 'generated' directory", async () => {
       const service = new Service(join(testDir, 'foo'));
