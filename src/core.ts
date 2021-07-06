@@ -34,19 +34,19 @@ export function determineServices(
   services: Services,
   fileDescriptorProto: FileDescriptorProto,
 ): { backendServices: Service[]; frontendServices: Service[] } {
-  const leadingDetachedComments = fileDescriptorProto.sourceCodeInfo?.location?.flatMap(
+  const leadingDetachedComments = fileDescriptorProto.sourceCodeInfo?.location.flatMap(
     location => location.leadingDetachedComments,
   );
   if (leadingDetachedComments && leadingDetachedComments.length > 0) {
     const lines = leadingDetachedComments[0].split(/\r?\n/).filter(line => line);
     const backendServices = lines
       .find(line => line.startsWith('backend-services='))
-      ?.split('=')?.[1]
-      ?.split(',');
+      ?.split('=')[1]
+      .split(',');
     const frontendServices = lines
       .find(line => line.startsWith('frontend-services='))
-      ?.split('=')?.[1]
-      ?.split(',');
+      ?.split('=')[1]
+      .split(',');
     return {
       backendServices: Object.keys(services)
         .filter(key => backendServices?.find(service => service === key))
