@@ -31,7 +31,7 @@ describe('utils', () => {
     rmSync(rootTestDir, { recursive: true, force: true });
   });
 
-  describe('createCodeGeneratorResponseFile', () => {
+  describe('createGeneratedFile', () => {
     const testDir = join(rootTestDir, 'createCodeGeneratorResponseFile');
     const fileName = 'foo.proto';
 
@@ -108,7 +108,7 @@ describe('utils', () => {
     );
   });
 
-  describe('createCodeGeneratorResponseFileForBackendMicroserviceOptions', () => {
+  describe('createGeneratedFileForBackendMicroserviceOptions', () => {
     const testDir = join(rootTestDir, 'createCodeGeneratorResponseFileForBackendMicroserviceOptions');
 
     it("should generate the file in the service's 'generated' directory", async () => {
