@@ -15,5 +15,10 @@
   ],
   "thresholds": {
     "break": 100
-  }
+  },
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.spec.ts",
+    "!src/plugin.ts"
+  ]
 }

@@ -1,21 +1,18 @@
+import { FileDescriptorProto, MethodDescriptorProto } from '@protobuf-ts/plugin-framework';
 import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { util } from 'protobufjs';
-import { PassThrough } from 'stream';
 import { code, imp } from 'ts-poet';
-import { google } from 'ts-proto/build/pbjs';
 import { BASE_TEST_DIR, trimPadding } from '../test/utils';
 import { Service } from './core';
 import { TypeMap } from './types';
 import {
+  assertDefined,
   combineCode,
-  createCodeGeneratorResponseFile,
-  createCodeGeneratorResponseFileForBackendMicroserviceOptions,
+  createGeneratedFile,
+  createGeneratedFileForBackendMicroserviceOptions,
   getMethodDefinition,
-  readToBuffer,
 } from './utils';
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
 import normalize = util.path.normalize;
 
 // noinspection JSUnusedGlobalSymbols
@@ -34,23 +31,6 @@ describe('utils', () => {
     rmSync(rootTestDir, { recursive: true, force: true });
   });
 
-  describe('readToBuffer', () => {
-    it('should return the contents of the stream as a buffer', async () => {
-      const stream = new PassThrough();
-      const data = Buffer.from('Foo\nBar\nBaz', 'utf-8');
-
-      process.nextTick(() => {
-        stream.emit('data', data);
-        stream.end();
-        stream.destroy();
-      });
-
-      const result = await readToBuffer(stream);
-
-      expect(result).toEqual(data);
-    });
-  });
-
   describe('createCodeGeneratorResponseFile', () => {
     const testDir = join(rootTestDir, 'createCodeGeneratorResponseFile');
     const fileName = 'foo.proto';
@@ -62,9 +42,9 @@ describe('utils', () => {
       ${'frontend'}
     `('should use .$type.ts as the file extension when the type is $type', async ({ type }) => {
       const service = new Service(join(testDir, 'foo'));
-      const result = await createCodeGeneratorResponseFile(
+      const result = await createGeneratedFile(
         service,
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: fileName,
           package: 'foo',
         }),
@@ -72,7 +52,7 @@ describe('utils', () => {
         code``,
       );
 
-      expect(result.name.endsWith(`foo.${type}.ts`)).toBe(true);
+      expect(result.getFilename().endsWith(`foo.${type}.ts`)).toBe(true);
     });
 
     it('should prefix code content with a comment to disable ESLint', async () => {
@@ -83,16 +63,16 @@ describe('utils', () => {
         const bar: ${imp('Baz@./baz')}
       `;
 
-      const result = await createCodeGeneratorResponseFile(
+      const result = await createGeneratedFile(
         service,
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: fileName,
           package: 'foo',
         }),
         'frontend',
         codeContent,
       );
-      const lines = result.content.split(/\r\n?|\n/);
+      const lines = result.getContent().split(/\r\n?|\n/);
 
       expect(lines[0]).toEqual('/* eslint-disable */');
     });
@@ -112,16 +92,16 @@ describe('utils', () => {
         const bar: ${imp('Baz@./baz')}
       `;
 
-        const result = await createCodeGeneratorResponseFile(
+        const result = await createGeneratedFile(
           service,
-          new FileDescriptorProto({
+          FileDescriptorProto.create({
             name: fileName,
             package: packageName,
           }),
           'frontend',
           codeContent,
         );
-        const lines = result.content.split(/\r\n?|\n/);
+        const lines = result.getContent().split(/\r\n?|\n/);
 
         expect(lines[1]).toEqual(`import { Baz } from '${importPath}';`);
       },
@@ -133,17 +113,17 @@ describe('utils', () => {
 
     it("should generate the file in the service's 'generated' directory", async () => {
       const service = new Service(join(testDir, 'foo'));
-      const result = await createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, code``);
+      const result = await createGeneratedFileForBackendMicroserviceOptions(service, code``);
 
       const expectedFilePath = normalize(join(service.generatedDir, 'backend-microservice-options.ts'));
 
-      expect(result.name).toEqual(expectedFilePath);
+      expect(result.getFilename()).toEqual(expectedFilePath);
     });
 
     it('should prefix code content with a comment to disable ESLint', async () => {
       const service = new Service(join(testDir, 'foo'));
-      const result = await createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, code``);
-      const lines = result.content.split(/\r\n?|\n/);
+      const result = await createGeneratedFileForBackendMicroserviceOptions(service, code``);
+      const lines = result.getContent().split(/\r\n?|\n/);
 
       expect(lines[0]).toEqual('/* eslint-disable */');
     });
@@ -172,13 +152,13 @@ describe('utils', () => {
       const name = 'Foo';
       const inputType = 'Bar';
       const outputType = 'Baz';
-      const methodDescriptorProto = new MethodDescriptorProto({
+      const methodDescriptorProto: MethodDescriptorProto = {
         name,
         inputType,
         outputType,
         clientStreaming: false,
         serverStreaming: false,
-      });
+      };
       const typeMap: TypeMap = new Map();
 
       const result = getMethodDefinition(methodDescriptorProto, typeMap).toString().trim();
@@ -190,6 +170,45 @@ describe('utils', () => {
       `).trim();
 
       expect(result).toEqual(expected);
+    });
+  });
+
+  describe('assertDefined', () => {
+    it('should execute without errors when the argument is defined', () => {
+      let threwError = false;
+
+      try {
+        assertDefined('');
+      } catch {
+        threwError = true;
+      }
+
+      expect(threwError).toEqual(false);
+    });
+
+    it('should throw an error when the argument is null', () => {
+      let threwError = false;
+
+      try {
+        assertDefined(null);
+      } catch {
+        threwError = true;
+      }
+
+      expect(threwError).toEqual(true);
+    });
+
+    it('should include the variable name in the error message', () => {
+      let error: Error | undefined;
+
+      try {
+        assertDefined(undefined);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeDefined();
+      expect(error?.message).toEqual('Variable was not defined when it should be');
     });
   });
 });

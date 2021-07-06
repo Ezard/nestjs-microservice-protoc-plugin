@@ -1,15 +1,15 @@
+import {
+  FileDescriptorProto,
+  ServiceDescriptorProto,
+  SourceCodeInfo,
+  SourceCodeInfo_Location,
+} from '@protobuf-ts/plugin-framework';
 import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { google } from 'ts-proto/build/pbjs';
 import { BASE_TEST_DIR, trimPadding } from '../test/utils';
 import { generateBackendContent, generateBackendMicroserviceOptionsFiles } from './backend-services';
 import { Service, Services } from './core';
 import { TypeMap } from './types';
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
-import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
-import SourceCodeInfo = google.protobuf.SourceCodeInfo;
-import Location = google.protobuf.SourceCodeInfo.Location;
 
 describe('backend-services', () => {
   const rootTestDir = join(BASE_TEST_DIR, 'backend-services');
@@ -42,13 +42,13 @@ describe('backend-services', () => {
 
     it('should emit the correct output when there are no services', async () => {
       const service = new Service(join(testDir, 'foo'));
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
         name: protoFileName,
-        service: [],
       });
 
       const result = await generateBackendContent(service, protosDir, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -59,24 +59,25 @@ describe('backend-services', () => {
 
     it('should emit the correct output when there is one service', async () => {
       const service = new Service(join(testDir, 'foo'));
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
         name: protoFileName,
         service: [
-          new ServiceDescriptorProto({
+          ServiceDescriptorProto.create({
             name: 'Foo',
             method: [
-              new MethodDescriptorProto({
+              {
                 name: 'foo',
                 inputType: '.Bar',
                 outputType: '.Baz',
-              }),
+              },
             ],
           }),
         ],
       });
 
       const result = await generateBackendContent(service, protosDir, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -105,34 +106,35 @@ describe('backend-services', () => {
 
     it('should emit the correct output when there is more than one service', async () => {
       const service = new Service(join(testDir, 'foo'));
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
         name: protoFileName,
         service: [
-          new ServiceDescriptorProto({
+          ServiceDescriptorProto.create({
             name: 'Foo',
             method: [
-              new MethodDescriptorProto({
+              {
                 name: 'foo',
                 inputType: '.Bar',
                 outputType: '.Baz',
-              }),
+              },
             ],
           }),
-          new ServiceDescriptorProto({
+          ServiceDescriptorProto.create({
             name: 'Foo2',
             method: [
-              new MethodDescriptorProto({
+              {
                 name: 'foo',
                 inputType: '.Bar',
                 outputType: '.Baz',
-              }),
+              },
             ],
           }),
         ],
       });
 
       const result = await generateBackendContent(service, protosDir, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -175,29 +177,30 @@ describe('backend-services', () => {
 
     it('should emit the correct output when the service has multiple methods', async () => {
       const service = new Service(join(testDir, 'foo'));
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
         name: protoFileName,
         service: [
-          new ServiceDescriptorProto({
+          ServiceDescriptorProto.create({
             name: 'Foo',
             method: [
-              new MethodDescriptorProto({
+              {
                 name: 'foo1',
                 inputType: '.Bar',
                 outputType: '.Baz',
-              }),
-              new MethodDescriptorProto({
+              },
+              {
                 name: 'foo2',
                 inputType: '.Baz',
                 outputType: '.Bar',
-              }),
+              },
             ],
           }),
         ],
       });
 
       const result = await generateBackendContent(service, protosDir, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -227,17 +230,18 @@ describe('backend-services', () => {
 
     it('should emit the correct output when a service has no methods', async () => {
       const service = new Service(join(testDir, 'foo'));
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
         name: protoFileName,
         service: [
-          new ServiceDescriptorProto({
+          ServiceDescriptorProto.create({
             name: 'Foo',
           }),
         ],
       });
 
       const result = await generateBackendContent(service, protosDir, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -267,12 +271,12 @@ describe('backend-services', () => {
         foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/foo.proto',
           package: 'foo',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
@@ -281,7 +285,7 @@ describe('backend-services', () => {
       ];
 
       const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
-      const result = files[0].content.trim();
+      const result = files[0].getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -307,23 +311,23 @@ describe('backend-services', () => {
         foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/foo.proto',
           package: 'foo',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
           }),
         }),
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/bar.proto',
           package: 'foo',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
@@ -332,7 +336,7 @@ describe('backend-services', () => {
       ];
 
       const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
-      const result = files[0].content.trim();
+      const result = files[0].getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -358,23 +362,23 @@ describe('backend-services', () => {
         foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/foo.proto',
           package: 'foo',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
           }),
         }),
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './bar/bar.proto',
           package: 'bar',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
@@ -383,7 +387,7 @@ describe('backend-services', () => {
       ];
 
       const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
-      const result = files[0].content.trim();
+      const result = files[0].getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -410,12 +414,12 @@ describe('backend-services', () => {
         bar: new Service(join(testDir, 'bar')),
       };
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/foo.proto',
           package: 'foo',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo,bar'],
               }),
             ],
@@ -424,8 +428,8 @@ describe('backend-services', () => {
       ];
 
       const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
-      const result1 = files[0].content.trim();
-      const result2 = files[1].content.trim();
+      const result1 = files[0].getContent().trim();
+      const result2 = files[1].getContent().trim();
 
       const expected1 = trimPadding(`
         /* eslint-disable */
@@ -467,21 +471,21 @@ describe('backend-services', () => {
         foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/bar/foo.proto',
           package: 'foo.bar',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: {
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
-          }),
+          },
         }),
       ];
 
       const files = await Promise.all(generateBackendMicroserviceOptionsFiles(services, fileDescriptorProtos));
-      const result = files[0].content.trim();
+      const result = files[0].getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -507,16 +511,16 @@ describe('backend-services', () => {
         foo: new Service(join(testDir, 'foo')),
       };
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: './foo/foo.proto',
           package: 'foo',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: {
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['frontend-services=foo'],
               }),
             ],
-          }),
+          },
         }),
       ];
 
