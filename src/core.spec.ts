@@ -1,11 +1,8 @@
+import { FileDescriptorProto, SourceCodeInfo, SourceCodeInfo_Location } from '@protobuf-ts/plugin-framework';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { google } from 'ts-proto/build/pbjs';
 import { BASE_TEST_DIR } from '../test/utils';
 import { determineServices, generateFiles, loadServices, Service, Services } from './core';
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-import SourceCodeInfo = google.protobuf.SourceCodeInfo;
-import Location = google.protobuf.SourceCodeInfo.Location;
 
 describe('core', () => {
   const rootTestDir = join(BASE_TEST_DIR, 'core');
@@ -103,10 +100,10 @@ describe('core', () => {
     });
 
     it('should parse a single backend service', () => {
-      const fileDescriptorProto = new FileDescriptorProto({
-        sourceCodeInfo: new SourceCodeInfo({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        sourceCodeInfo: SourceCodeInfo.create({
           location: [
-            new Location({
+            SourceCodeInfo_Location.create({
               leadingDetachedComments: ['backend-services=fooBackend'],
             }),
           ],
@@ -121,10 +118,10 @@ describe('core', () => {
       expect(fooBackendInFrontends).toEqual(false);
     });
     it('should parse multiple backend services', () => {
-      const fileDescriptorProto = new FileDescriptorProto({
-        sourceCodeInfo: new SourceCodeInfo({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        sourceCodeInfo: SourceCodeInfo.create({
           location: [
-            new Location({
+            SourceCodeInfo_Location.create({
               leadingDetachedComments: ['backend-services=fooBackend,barBackend'],
             }),
           ],
@@ -143,10 +140,10 @@ describe('core', () => {
       expect(barBackendInFrontends).toEqual(false);
     });
     it('should parse a single frontend service', () => {
-      const fileDescriptorProto = new FileDescriptorProto({
-        sourceCodeInfo: new SourceCodeInfo({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        sourceCodeInfo: SourceCodeInfo.create({
           location: [
-            new Location({
+            SourceCodeInfo_Location.create({
               leadingDetachedComments: ['frontend-services=fooFrontend'],
             }),
           ],
@@ -161,10 +158,10 @@ describe('core', () => {
       expect(fooFrontendInBackends).toEqual(false);
     });
     it('should parse multiple frontend services', () => {
-      const fileDescriptorProto = new FileDescriptorProto({
-        sourceCodeInfo: new SourceCodeInfo({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        sourceCodeInfo: SourceCodeInfo.create({
           location: [
-            new Location({
+            SourceCodeInfo_Location.create({
               leadingDetachedComments: ['frontend-services=fooFrontend,barFrontend'],
             }),
           ],
@@ -183,10 +180,10 @@ describe('core', () => {
       expect(barFrontendInBackends).toEqual(false);
     });
     it('should parse multiple backend services and multiple frontend services', () => {
-      const fileDescriptorProto = new FileDescriptorProto({
-        sourceCodeInfo: new SourceCodeInfo({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        sourceCodeInfo: SourceCodeInfo.create({
           location: [
-            new Location({
+            SourceCodeInfo_Location.create({
               leadingDetachedComments: [
                 `backend-services=fooBackend,barBackend\nfrontend-services=fooFrontend,barFrontend`,
               ],
@@ -218,7 +215,7 @@ describe('core', () => {
       expect(barFrontendInBackends).toEqual(false);
     });
     it('should return empty arrays when no services are parsed due to lack of leading detached comments', () => {
-      const fileDescriptorProto = new FileDescriptorProto();
+      const fileDescriptorProto = FileDescriptorProto.create();
 
       const result = determineServices(services, fileDescriptorProto);
       const numBackendServices = result.backendServices.length;
@@ -228,10 +225,10 @@ describe('core', () => {
       expect(numFrontendServices).toEqual(0);
     });
     it('should return empty arrays when no services are parsed due to an empty leading detached comments array', () => {
-      const fileDescriptorProto = new FileDescriptorProto({
-        sourceCodeInfo: new SourceCodeInfo({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        sourceCodeInfo: SourceCodeInfo.create({
           location: [
-            new Location({
+            SourceCodeInfo_Location.create({
               leadingDetachedComments: [],
             }),
           ],
@@ -271,11 +268,12 @@ describe('core', () => {
 
     it('should generate types files for backend services', async () => {
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
+          package: '',
           name: 'foo.proto',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
@@ -284,17 +282,18 @@ describe('core', () => {
       ];
 
       const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
-      const typesFile = result.find(file => file.name.endsWith('.types.ts'));
+      const typesFile = result.find(file => file.getFilename().endsWith('.types.ts'));
 
       expect(typesFile).toBeDefined();
     });
     it('should generate types files for frontend services', async () => {
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
+          package: '',
           name: 'foo.proto',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['frontend-services=foo'],
               }),
             ],
@@ -303,17 +302,18 @@ describe('core', () => {
       ];
 
       const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
-      const typesFile = result.find(file => file.name.endsWith('.types.ts'));
+      const typesFile = result.find(file => file.getFilename().endsWith('.types.ts'));
 
       expect(typesFile).toBeDefined();
     });
     it('should generate backend files for backend services', async () => {
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
+          package: '',
           name: 'foo.proto',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['backend-services=foo'],
               }),
             ],
@@ -322,17 +322,18 @@ describe('core', () => {
       ];
 
       const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
-      const typesFile = result.find(file => file.name.endsWith('.backend.ts'));
+      const typesFile = result.find(file => file.getFilename().endsWith('.backend.ts'));
 
       expect(typesFile).toBeDefined();
     });
     it('should generate frontend files for frontend services', async () => {
       const fileDescriptorProtos = [
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
+          package: '',
           name: 'foo.proto',
-          sourceCodeInfo: new SourceCodeInfo({
+          sourceCodeInfo: SourceCodeInfo.create({
             location: [
-              new Location({
+              SourceCodeInfo_Location.create({
                 leadingDetachedComments: ['frontend-services=foo'],
               }),
             ],
@@ -341,7 +342,7 @@ describe('core', () => {
       ];
 
       const result = await generateFiles(fileDescriptorProtos, servicesFile, protosDir);
-      const typesFile = result.find(file => file.name.endsWith('.frontend.ts'));
+      const typesFile = result.find(file => file.getFilename().endsWith('.frontend.ts'));
 
       expect(typesFile).toBeDefined();
     });

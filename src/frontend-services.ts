@@ -1,13 +1,10 @@
+import { FileDescriptorProto, GeneratedFile, ServiceDescriptorProto } from '@protobuf-ts/plugin-framework';
 import { copyFileSync } from 'fs';
 import { join } from 'path';
 import { Code, code, imp } from 'ts-poet';
-import { google } from 'ts-proto/build/pbjs';
 import { Service } from './core';
 import { TypeMap } from './types';
-import { combineCode, createCodeGeneratorResponseFile, getMethodDefinition } from './utils';
-import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
+import { assertDefined, combineCode, createGeneratedFile, getMethodDefinition } from './utils';
 
 const ClientProviderOptions = imp('ClientProviderOptions@@nestjs/microservices');
 const Transport = imp('Transport@@nestjs/microservices');
@@ -19,6 +16,7 @@ function generateFrontendService(
   serviceDescriptorProto: ServiceDescriptorProto,
   typeMap: TypeMap,
 ): Code {
+  assertDefined(fileDescriptorProto.name);
   copyFileSync(join(srcProtosDir, fileDescriptorProto.name), join(service.protosDir, fileDescriptorProto.name));
   const methodDefinitions = serviceDescriptorProto.method
     .map(method => getMethodDefinition(method, typeMap))
@@ -44,11 +42,11 @@ export async function generateFrontendContent(
   protosDir: string,
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
-): Promise<CodeGeneratorResponse.File> {
+): Promise<GeneratedFile> {
   const codeContent = fileDescriptorProto.service
     .map(serviceDescriptorProto =>
       generateFrontendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap),
     )
     .reduce(combineCode, code``);
-  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'frontend', codeContent);
+  return createGeneratedFile(service, fileDescriptorProto, 'frontend', codeContent);
 }

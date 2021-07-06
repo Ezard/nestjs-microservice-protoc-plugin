@@ -1,61 +1,47 @@
+import { FileDescriptorProto, GeneratedFile, MethodDescriptorProto } from '@protobuf-ts/plugin-framework';
 import { join } from 'path';
 import { util } from 'protobufjs';
 import { code, Code, imp } from 'ts-poet';
-import { google } from 'ts-proto/build/pbjs';
 import { Service } from './core';
 import { getImpFromTypeName, TypeMap } from './types';
-import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-import MethodDescriptorProto = google.protobuf.MethodDescriptorProto;
-import ReadableStream = NodeJS.ReadableStream;
 import normalize = util.path.normalize;
 
 const Observable = imp('Observable@rxjs');
-
-export function readToBuffer(stream: ReadableStream): Promise<Buffer> {
-  return new Promise(resolve => {
-    const ret: Array<Buffer> = [];
-    let len = 0;
-    stream.on('data', (data: Buffer) => {
-      ret.push(data);
-      len += data.length;
-    });
-    stream.on('end', () => {
-      resolve(Buffer.concat(ret, len));
-    });
-  });
-}
 
 function prefixDisableLinter(fileContents: string): string {
   return `/* eslint-disable */
 ${fileContents}`;
 }
 
-export async function createCodeGeneratorResponseFile(
+export async function createGeneratedFile(
   service: Service,
   fileDescriptorProto: FileDescriptorProto,
   type: 'types' | 'backend' | 'frontend',
   codeContent: Code,
-): Promise<CodeGeneratorResponse.File> {
+): Promise<GeneratedFile> {
+  assertDefined(fileDescriptorProto.package);
+  assertDefined(fileDescriptorProto.name);
   const directory = fileDescriptorProto.package.replace('.', '/');
   const fileName = `${fileDescriptorProto.name.replace('.proto', '')}.${type}.ts`;
   const relativePath = normalize(join(directory, fileName));
   const fullPath = normalize(join(service.generatedDir, relativePath));
-  return new CodeGeneratorResponse.File({
-    name: fullPath,
-    content: prefixDisableLinter(await codeContent.toStringWithImports(relativePath)),
-  });
+  const content = prefixDisableLinter(await codeContent.toStringWithImports(relativePath));
+  return {
+    getFilename: () => fullPath,
+    getContent: () => content,
+  };
 }
 
-export async function createCodeGeneratorResponseFileForBackendMicroserviceOptions(
+export async function createGeneratedFileForBackendMicroserviceOptions(
   service: Service,
   codeContent: Code,
-): Promise<CodeGeneratorResponse.File> {
+): Promise<GeneratedFile> {
   const fullPath = normalize(join(service.generatedDir, 'backend-microservice-options.ts'));
-  return new CodeGeneratorResponse.File({
-    name: fullPath,
-    content: prefixDisableLinter(await codeContent.toStringWithImports()),
-  });
+  const content = prefixDisableLinter(await codeContent.toStringWithImports());
+  return {
+    getFilename: () => fullPath,
+    getContent: () => content,
+  };
 }
 
 export function combineCode(acc: Code, cur: Code): Code {
@@ -85,5 +71,13 @@ function getOutputType(outputType: string, typeMap: TypeMap): Code {
 }
 
 export function getMethodDefinition({ name, inputType, outputType }: MethodDescriptorProto, typeMap: TypeMap): Code {
+  assertDefined(inputType);
+  assertDefined(outputType);
   return code`${name}(request: ${getInputType(inputType, typeMap)}): ${getOutputType(outputType, typeMap)}`;
+}
+
+export function assertDefined<T>(value: T): asserts value is NonNullable<T> {
+  if (value === undefined || value === null) {
+    throw new Error(`Variable was not defined when it should be`);
+  }
 }

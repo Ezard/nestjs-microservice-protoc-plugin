@@ -1,14 +1,15 @@
+import {
+  DescriptorProto,
+  EnumDescriptorProto,
+  FieldDescriptorProto,
+  FieldDescriptorProto_Label,
+  FieldDescriptorProto_Type,
+  FileDescriptorProto,
+  GeneratedFile,
+} from '@protobuf-ts/plugin-framework';
 import { code, Code, imp } from 'ts-poet';
-import { google } from 'ts-proto/build/pbjs';
 import { Service } from './core';
-import { combineCode, createCodeGeneratorResponseFile } from './utils';
-import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
-import DescriptorProto = google.protobuf.DescriptorProto;
-import EnumDescriptorProto = google.protobuf.EnumDescriptorProto;
-import FieldDescriptorProto = google.protobuf.FieldDescriptorProto;
-import Label = google.protobuf.FieldDescriptorProto.Label;
-import Type = google.protobuf.FieldDescriptorProto.Type;
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
+import { assertDefined, combineCode, createGeneratedFile } from './utils';
 
 export type TypeMap = Map<string, { type: string; relativePath: string }>;
 
@@ -16,15 +17,16 @@ export function generateTypeMap(fileDescriptorProtos: FileDescriptorProto[]): Ty
   return new Map(
     fileDescriptorProtos
       .flatMap(fileDescriptorProto => {
-        return [
-          ...fileDescriptorProto.messageType.map(messageType => ({ fileDescriptorProto, type: messageType.name })),
-          ...fileDescriptorProto.enumType.map(messageType => ({ fileDescriptorProto, type: messageType.name })),
-        ];
+        return [...fileDescriptorProto.messageType, ...fileDescriptorProto.enumType].map(messageType => {
+          assertDefined(messageType.name);
+          return { fileDescriptorProto, type: messageType.name };
+        });
       })
       .map(({ fileDescriptorProto, type }) => {
         const packageName = fileDescriptorProto.package;
         let relativePath: string;
         let key: string;
+        assertDefined(fileDescriptorProto.name);
         if (packageName) {
           relativePath = `${packageName.replace('.', '/')}/${fileDescriptorProto.name.replace('.proto', '')}.types`;
           key = `.${packageName}.${type}`;
@@ -48,29 +50,32 @@ export function getImpFromTypeName(typeMap: TypeMap, typeName: string): Code {
 }
 
 function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap): string | Code {
+  assertDefined(field.type);
   switch (field.type) {
-    case Type.TYPE_DOUBLE:
-    case Type.TYPE_FLOAT:
-    case Type.TYPE_INT64:
-    case Type.TYPE_UINT64:
-    case Type.TYPE_INT32:
-    case Type.TYPE_FIXED64:
-    case Type.TYPE_FIXED32:
-    case Type.TYPE_UINT32:
-    case Type.TYPE_SFIXED32:
-    case Type.TYPE_SFIXED64:
-    case Type.TYPE_SINT32:
-    case Type.TYPE_SINT64:
+    case FieldDescriptorProto_Type.DOUBLE:
+    case FieldDescriptorProto_Type.FLOAT:
+    case FieldDescriptorProto_Type.INT64:
+    case FieldDescriptorProto_Type.UINT64:
+    case FieldDescriptorProto_Type.INT32:
+    case FieldDescriptorProto_Type.FIXED64:
+    case FieldDescriptorProto_Type.FIXED32:
+    case FieldDescriptorProto_Type.UINT32:
+    case FieldDescriptorProto_Type.SFIXED32:
+    case FieldDescriptorProto_Type.SFIXED64:
+    case FieldDescriptorProto_Type.SINT32:
+    case FieldDescriptorProto_Type.SINT64:
       return 'number';
-    case Type.TYPE_BOOL:
+    case FieldDescriptorProto_Type.BOOL:
       return 'boolean';
-    case Type.TYPE_STRING:
+    case FieldDescriptorProto_Type.STRING:
       return 'string';
-    case Type.TYPE_GROUP:
-    case Type.TYPE_BYTES:
+    case FieldDescriptorProto_Type.GROUP:
+    case FieldDescriptorProto_Type.BYTES:
+    case FieldDescriptorProto_Type.UNSPECIFIED$:
       return 'never';
-    case Type.TYPE_MESSAGE:
-    case Type.TYPE_ENUM:
+    case FieldDescriptorProto_Type.MESSAGE:
+    case FieldDescriptorProto_Type.ENUM:
+      assertDefined(field.typeName);
       return getImpFromTypeName(typeMap, field.typeName);
   }
 }
@@ -78,13 +83,16 @@ function getType(service: Service, field: FieldDescriptorProto, typeMap: TypeMap
 function generateFields(service: Service, messageType: DescriptorProto, typeMap: TypeMap): Code {
   return messageType.field
     .map(field => {
+      assertDefined(field.label);
       switch (field.label) {
-        case Label.LABEL_OPTIONAL:
+        case FieldDescriptorProto_Label.OPTIONAL:
           return code`  ${field.name}?: ${getType(service, field, typeMap)};`;
-        case Label.LABEL_REQUIRED:
+        case FieldDescriptorProto_Label.REQUIRED:
           return code`  ${field.name}: ${getType(service, field, typeMap)};`;
-        case Label.LABEL_REPEATED:
+        case FieldDescriptorProto_Label.REPEATED:
           return code`  ${field.name}: ${getType(service, field, typeMap)}[];`;
+        case FieldDescriptorProto_Label.UNSPECIFIED$:
+          throw new Error(`Unknown field label type: ${field.label}`);
       }
     })
     .reduce(combineCode, code``);
@@ -120,10 +128,10 @@ export async function generateTypesContent(
   service: Service,
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
-): Promise<CodeGeneratorResponse.File> {
+): Promise<GeneratedFile> {
   const codeContent = code`
     ${generateMessageInterfaces(service, fileDescriptorProto.messageType, typeMap)}
     ${generateEnums(service, fileDescriptorProto.enumType)}
   `;
-  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'types', codeContent);
+  return createGeneratedFile(service, fileDescriptorProto, 'types', codeContent);
 }

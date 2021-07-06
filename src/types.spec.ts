@@ -1,17 +1,18 @@
+import {
+  DescriptorProto,
+  EnumDescriptorProto,
+  EnumValueDescriptorProto,
+  FieldDescriptorProto,
+  FieldDescriptorProto_Label,
+  FieldDescriptorProto_Type,
+  FileDescriptorProto,
+} from '@protobuf-ts/plugin-framework';
 import { rmSync } from 'fs';
 import { join } from 'path';
 import { code } from 'ts-poet';
-import { google } from 'ts-proto/build/pbjs';
 import { BASE_TEST_DIR, trimPadding } from '../test/utils';
 import { Service } from './core';
 import { generateTypeMap, generateTypesContent, getImpFromTypeName, TypeMap } from './types';
-import DescriptorProto = google.protobuf.DescriptorProto;
-import EnumDescriptorProto = google.protobuf.EnumDescriptorProto;
-import EnumValueDescriptorProto = google.protobuf.EnumValueDescriptorProto;
-import FieldDescriptorProto = google.protobuf.FieldDescriptorProto;
-import Label = google.protobuf.FieldDescriptorProto.Label;
-import Type = google.protobuf.FieldDescriptorProto.Type;
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
 
 describe('types', () => {
   const rootTestDir = join(BASE_TEST_DIR, 'types');
@@ -19,9 +20,9 @@ describe('types', () => {
   describe('generateTypeMap', () => {
     it('should add types to the type map when no package name is specified', () => {
       const typeMap = generateTypeMap([
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: 'foos.proto',
-          messageType: [new DescriptorProto({ name: 'Bar' })],
+          messageType: [DescriptorProto.create({ name: 'Bar' })],
         }),
       ]);
 
@@ -32,10 +33,10 @@ describe('types', () => {
 
     it('should add types to the type map when a single level package name is specified', () => {
       const typeMap = generateTypeMap([
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: 'foos.proto',
           package: 'foo',
-          messageType: [new DescriptorProto({ name: 'Bar' })],
+          messageType: [DescriptorProto.create({ name: 'Bar' })],
         }),
       ]);
 
@@ -46,10 +47,10 @@ describe('types', () => {
 
     it('should add types to the type map when a multi-level package name is specified', () => {
       const typeMap = generateTypeMap([
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: 'foos.proto',
           package: 'foo.baz',
-          messageType: [new DescriptorProto({ name: 'Bar' })],
+          messageType: [DescriptorProto.create({ name: 'Bar' })],
         }),
       ]);
 
@@ -61,10 +62,10 @@ describe('types', () => {
     it('should add enum types to the type map', () => {
       const enumName = 'Foo';
       const typeMap = generateTypeMap([
-        new FileDescriptorProto({
+        FileDescriptorProto.create({
           name: 'foos.proto',
           enumType: [
-            new EnumDescriptorProto({
+            EnumDescriptorProto.create({
               name: enumName,
             }),
           ],
@@ -128,22 +129,24 @@ describe('types', () => {
     });
 
     it('should generate a Typescript interface with a single field from a Protobuf message', async () => {
-      const messageType = new DescriptorProto({
+      const messageType = DescriptorProto.create({
         name: 'Foo',
         field: [
-          new FieldDescriptorProto({
+          FieldDescriptorProto.create({
             name: 'bar',
-            label: Label.LABEL_REQUIRED,
-            type: Type.TYPE_DOUBLE,
+            label: FieldDescriptorProto_Label.REQUIRED,
+            type: FieldDescriptorProto_Type.DOUBLE,
           }),
         ],
       });
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: [messageType],
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -157,28 +160,30 @@ describe('types', () => {
 
     it('should generate a Typescript interface with multiple fields from a Protobuf message', async () => {
       const messageTypes = [
-        new DescriptorProto({
+        DescriptorProto.create({
           name: 'Foo',
           field: [
-            new FieldDescriptorProto({
+            FieldDescriptorProto.create({
               name: 'bar',
-              label: Label.LABEL_REQUIRED,
-              type: Type.TYPE_DOUBLE,
+              label: FieldDescriptorProto_Label.REQUIRED,
+              type: FieldDescriptorProto_Type.DOUBLE,
             }),
-            new FieldDescriptorProto({
+            FieldDescriptorProto.create({
               name: 'baz',
-              label: Label.LABEL_REQUIRED,
-              type: Type.TYPE_DOUBLE,
+              label: FieldDescriptorProto_Label.REQUIRED,
+              type: FieldDescriptorProto_Type.DOUBLE,
             }),
           ],
         }),
       ];
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: messageTypes,
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -193,38 +198,40 @@ describe('types', () => {
 
     it('should generate multiple Typescript interfaces from multiple Protobuf messages', async () => {
       const messageTypes = [
-        new DescriptorProto({
+        DescriptorProto.create({
           name: 'Foo',
           field: [
-            new FieldDescriptorProto({
+            FieldDescriptorProto.create({
               name: 'bar',
-              label: Label.LABEL_REQUIRED,
-              type: Type.TYPE_DOUBLE,
+              label: FieldDescriptorProto_Label.REQUIRED,
+              type: FieldDescriptorProto_Type.DOUBLE,
             }),
-            new FieldDescriptorProto({
+            FieldDescriptorProto.create({
               name: 'baz',
-              label: Label.LABEL_REQUIRED,
-              type: Type.TYPE_DOUBLE,
+              label: FieldDescriptorProto_Label.REQUIRED,
+              type: FieldDescriptorProto_Type.DOUBLE,
             }),
           ],
         }),
-        new DescriptorProto({
+        DescriptorProto.create({
           name: 'Test',
           field: [
-            new FieldDescriptorProto({
+            FieldDescriptorProto.create({
               name: 'thing',
-              label: Label.LABEL_REQUIRED,
-              type: Type.TYPE_DOUBLE,
+              label: FieldDescriptorProto_Label.REQUIRED,
+              type: FieldDescriptorProto_Type.DOUBLE,
             }),
           ],
         }),
       ];
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: messageTypes,
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -242,22 +249,24 @@ describe('types', () => {
     });
 
     it('should mark optional Protobuf fields with Typescript optional markers', async () => {
-      const messageType = new DescriptorProto({
+      const messageType = DescriptorProto.create({
         name: 'Foo',
         field: [
-          new FieldDescriptorProto({
+          FieldDescriptorProto.create({
             name: 'bar',
-            label: Label.LABEL_OPTIONAL,
-            type: Type.TYPE_DOUBLE,
+            label: FieldDescriptorProto_Label.OPTIONAL,
+            type: FieldDescriptorProto_Type.DOUBLE,
           }),
         ],
       });
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: [messageType],
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -270,22 +279,24 @@ describe('types', () => {
     });
 
     it('should mark repeated Protobuf fields as a Typescript array', async () => {
-      const messageType = new DescriptorProto({
+      const messageType = DescriptorProto.create({
         name: 'Foo',
         field: [
-          new FieldDescriptorProto({
+          FieldDescriptorProto.create({
             name: 'bar',
-            label: Label.LABEL_REPEATED,
-            type: Type.TYPE_DOUBLE,
+            label: FieldDescriptorProto_Label.REPEATED,
+            type: FieldDescriptorProto_Type.DOUBLE,
           }),
         ],
       });
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: [messageType],
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -297,43 +308,74 @@ describe('types', () => {
       expect(trimmedResult).toEqual(expected);
     });
 
+    it('should throw an error if the Protobuf label for a field is unspecified', async () => {
+      const messageType = DescriptorProto.create({
+        name: 'Foo',
+        field: [
+          FieldDescriptorProto.create({
+            name: 'bar',
+            label: FieldDescriptorProto_Label.UNSPECIFIED$,
+            type: FieldDescriptorProto_Type.DOUBLE,
+          }),
+        ],
+      });
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
+        messageType: [messageType],
+      });
+
+      let error: Error | undefined;
+      try {
+        await generateTypesContent(service, fileDescriptorProto, typeMap);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeDefined();
+      expect(error?.message).toEqual('Unknown field label type: 0');
+    });
+
     it.each`
-      protobufType          | stringProtobufType | typescriptType
-      ${Type.TYPE_DOUBLE}   | ${'TYPE_DOUBLE'}   | ${'number'}
-      ${Type.TYPE_FLOAT}    | ${'TYPE_FLOAT'}    | ${'number'}
-      ${Type.TYPE_INT64}    | ${'TYPE_INT64'}    | ${'number'}
-      ${Type.TYPE_UINT64}   | ${'TYPE_UINT64'}   | ${'number'}
-      ${Type.TYPE_INT32}    | ${'TYPE_INT32'}    | ${'number'}
-      ${Type.TYPE_FIXED64}  | ${'TYPE_FIXED64'}  | ${'number'}
-      ${Type.TYPE_FIXED32}  | ${'TYPE_FIXED32'}  | ${'number'}
-      ${Type.TYPE_BOOL}     | ${'TYPE_BOOL'}     | ${'boolean'}
-      ${Type.TYPE_STRING}   | ${'TYPE_STRING'}   | ${'string'}
-      ${Type.TYPE_GROUP}    | ${'TYPE_GROUP'}    | ${'never'}
-      ${Type.TYPE_BYTES}    | ${'TYPE_BYTES'}    | ${'never'}
-      ${Type.TYPE_UINT32}   | ${'TYPE_UINT32'}   | ${'number'}
-      ${Type.TYPE_SFIXED32} | ${'TYPE_SFIXED32'} | ${'number'}
-      ${Type.TYPE_SFIXED64} | ${'TYPE_SFIXED64'} | ${'number'}
-      ${Type.TYPE_SINT32}   | ${'TYPE_SINT32}'}  | ${'number'}
-      ${Type.TYPE_SINT64}   | ${'TYPE_SINT64'}   | ${'number'}
+      protobufType                              | stringProtobufType | typescriptType
+      ${FieldDescriptorProto_Type.DOUBLE}       | ${'DOUBLE'}        | ${'number'}
+      ${FieldDescriptorProto_Type.FLOAT}        | ${'FLOAT'}         | ${'number'}
+      ${FieldDescriptorProto_Type.INT64}        | ${'INT64'}         | ${'number'}
+      ${FieldDescriptorProto_Type.UINT64}       | ${'UINT64'}        | ${'number'}
+      ${FieldDescriptorProto_Type.INT32}        | ${'INT32'}         | ${'number'}
+      ${FieldDescriptorProto_Type.FIXED64}      | ${'FIXED64'}       | ${'number'}
+      ${FieldDescriptorProto_Type.FIXED32}      | ${'FIXED32'}       | ${'number'}
+      ${FieldDescriptorProto_Type.BOOL}         | ${'BOOL'}          | ${'boolean'}
+      ${FieldDescriptorProto_Type.STRING}       | ${'STRING'}        | ${'string'}
+      ${FieldDescriptorProto_Type.GROUP}        | ${'GROUP'}         | ${'never'}
+      ${FieldDescriptorProto_Type.BYTES}        | ${'BYTES'}         | ${'never'}
+      ${FieldDescriptorProto_Type.UINT32}       | ${'UINT32'}        | ${'number'}
+      ${FieldDescriptorProto_Type.SFIXED32}     | ${'SFIXED32'}      | ${'number'}
+      ${FieldDescriptorProto_Type.SFIXED64}     | ${'SFIXED64'}      | ${'number'}
+      ${FieldDescriptorProto_Type.SINT32}       | ${'SINT32}'}       | ${'number'}
+      ${FieldDescriptorProto_Type.SINT64}       | ${'SINT64'}        | ${'number'}
+      ${FieldDescriptorProto_Type.UNSPECIFIED$} | ${'UNSPECIFIED$'}  | ${'never'}
     `(
       "should use '$typescriptType' as the Typescript field type when the Protobuf field type is '$stringProtobufType'",
       async ({ protobufType, typescriptType }) => {
-        const messageType = new DescriptorProto({
+        const messageType = DescriptorProto.create({
           name: 'Foo',
           field: [
-            new FieldDescriptorProto({
+            FieldDescriptorProto.create({
               name: 'bar',
-              label: Label.LABEL_REQUIRED,
+              label: FieldDescriptorProto_Label.REQUIRED,
               type: protobufType,
             }),
           ],
         });
-        const fileDescriptorProto = new FileDescriptorProto({
+        const fileDescriptorProto = FileDescriptorProto.create({
+          package: '',
+          name: '',
           messageType: [messageType],
         });
 
         const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-        const trimmedResult = result.content.trim();
+        const trimmedResult = result.getContent().trim();
 
         const expected = trimPadding(`
         /* eslint-disable */
@@ -347,23 +389,25 @@ describe('types', () => {
     );
 
     it("should use the relevant field from the type map as the Typescript field type when the Protobuf message field type is 'TYPE_ENUM'", async () => {
-      const messageType = new DescriptorProto({
+      const messageType = DescriptorProto.create({
         name: 'Foo',
         field: [
-          new FieldDescriptorProto({
+          FieldDescriptorProto.create({
             name: 'bar',
-            label: Label.LABEL_REQUIRED,
-            type: Type.TYPE_ENUM,
+            label: FieldDescriptorProto_Label.REQUIRED,
+            type: FieldDescriptorProto_Type.ENUM,
             typeName: '.Bar',
           }),
         ],
       });
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: [messageType],
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -378,23 +422,25 @@ describe('types', () => {
     });
 
     it("should use the relevant field from the type map as the Typescript field type when the Protobuf message field type is 'TYPE_MESSAGE'", async () => {
-      const messageType = new DescriptorProto({
+      const messageType = DescriptorProto.create({
         name: 'Foo',
         field: [
-          new FieldDescriptorProto({
+          FieldDescriptorProto.create({
             name: 'bar',
-            label: Label.LABEL_REQUIRED,
-            type: Type.TYPE_MESSAGE,
+            label: FieldDescriptorProto_Label.REQUIRED,
+            type: FieldDescriptorProto_Type.MESSAGE,
             typeName: '.Bar',
           }),
         ],
       });
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
+        name: '',
         messageType: [messageType],
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
@@ -410,20 +456,21 @@ describe('types', () => {
 
     it('should generate a Typescript enum from a Protobuf enum', async () => {
       const enumName = 'Foo';
-      const enumValue1 = new EnumValueDescriptorProto({ name: 'FOO', number: 1 });
-      const enumValue2 = new EnumValueDescriptorProto({ name: 'BAR', number: 1 });
-      const enumValue3 = new EnumValueDescriptorProto({ name: 'BAZ', number: 1 });
-      const enumType = new EnumDescriptorProto({
+      const enumValue1 = EnumValueDescriptorProto.create({ name: 'FOO', number: 1 });
+      const enumValue2 = EnumValueDescriptorProto.create({ name: 'BAR', number: 1 });
+      const enumValue3 = EnumValueDescriptorProto.create({ name: 'BAZ', number: 1 });
+      const enumType = EnumDescriptorProto.create({
         name: enumName,
         value: [enumValue1, enumValue2, enumValue3],
       });
-      const fileDescriptorProto = new FileDescriptorProto({
+      const fileDescriptorProto = FileDescriptorProto.create({
+        package: '',
         name: 'foos.proto',
         enumType: [enumType],
       });
 
       const result = await generateTypesContent(service, fileDescriptorProto, typeMap);
-      const trimmedResult = result.content.trim();
+      const trimmedResult = result.getContent().trim();
 
       const expected = trimPadding(`
         /* eslint-disable */
