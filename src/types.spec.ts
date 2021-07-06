@@ -325,9 +325,15 @@ describe('types', () => {
         messageType: [messageType],
       });
 
-      const result = generateTypesContent(service, fileDescriptorProto, typeMap);
+      let error: Error | undefined;
+      try {
+        await generateTypesContent(service, fileDescriptorProto, typeMap);
+      } catch (e) {
+        error = e;
+      }
 
-      await expect(result).rejects.toBeDefined();
+      expect(error).toBeDefined();
+      expect(error?.message).toEqual('Unknown field label type: 0');
     });
 
     it.each`
