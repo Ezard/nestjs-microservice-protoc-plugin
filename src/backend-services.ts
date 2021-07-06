@@ -1,19 +1,17 @@
+import { FileDescriptorProto, GeneratedFile, ServiceDescriptorProto } from '@protobuf-ts/plugin-framework';
 import { copyFileSync } from 'fs';
 import { join } from 'path';
 import { util } from 'protobufjs';
 import { code, Code, imp } from 'ts-poet';
-import { google } from 'ts-proto/build/pbjs';
 import { determineServices, Service, Services } from './core';
 import { TypeMap } from './types';
 import {
+  assertDefined,
   combineCode,
-  createCodeGeneratorResponseFile,
-  createCodeGeneratorResponseFileForBackendMicroserviceOptions,
+  createGeneratedFile,
+  createGeneratedFileForBackendMicroserviceOptions,
   getMethodDefinition,
 } from './utils';
-import CodeGeneratorResponse = google.protobuf.compiler.CodeGeneratorResponse;
-import FileDescriptorProto = google.protobuf.FileDescriptorProto;
-import ServiceDescriptorProto = google.protobuf.ServiceDescriptorProto;
 import normalize = util.path.normalize;
 
 const GrpcMethod = imp('GrpcMethod@@nestjs/microservices');
@@ -26,7 +24,12 @@ function quote(str: string): string {
 
 function generateGrpcMethods({ name, method: methods }: ServiceDescriptorProto): Code {
   if (methods.length > 0) {
-    const methodNames = methods.map(method => quote(method.name)).join(', ');
+    const methodNames = methods
+      .map(method => {
+        assertDefined(method.name);
+        return quote(method.name);
+      })
+      .join(', ');
     return code`
       const grpcMethods: string[] = [${methodNames}];
       for (const method of grpcMethods) {
@@ -46,6 +49,7 @@ function generateBackendService(
   serviceDescriptorProto: ServiceDescriptorProto,
   typeMap: TypeMap,
 ): Code {
+  assertDefined(fileDescriptorProto.name);
   copyFileSync(join(srcProtosDir, fileDescriptorProto.name), join(service.protosDir, fileDescriptorProto.name));
   const methodDefinitions = serviceDescriptorProto.method
     .map(method => getMethodDefinition(method, typeMap))
@@ -68,19 +72,19 @@ export async function generateBackendContent(
   protosDir: string,
   fileDescriptorProto: FileDescriptorProto,
   typeMap: TypeMap,
-): Promise<CodeGeneratorResponse.File> {
+): Promise<GeneratedFile> {
   const codeContent = fileDescriptorProto.service
     .map(serviceDescriptorProto =>
       generateBackendService(service, protosDir, fileDescriptorProto, serviceDescriptorProto, typeMap),
     )
     .reduce(combineCode, code``);
-  return createCodeGeneratorResponseFile(service, fileDescriptorProto, 'backend', codeContent);
+  return createGeneratedFile(service, fileDescriptorProto, 'backend', codeContent);
 }
 
 export function generateBackendMicroserviceOptionsFiles(
   services: Services,
   fileDescriptorProtoList: FileDescriptorProto[],
-): Promise<google.protobuf.compiler.CodeGeneratorResponse.File>[] {
+): Promise<GeneratedFile>[] {
   return fileDescriptorProtoList
     .flatMap(fileDescriptorProto => ({
       fileDescriptorProto,
@@ -100,7 +104,10 @@ export function generateBackendMicroserviceOptionsFiles(
     }, [] as { service: Service; fileDescriptorProtos: FileDescriptorProto[] }[])
     .flatMap(({ service, fileDescriptorProtos }) => {
       const packages = fileDescriptorProtos
-        .map(fileDescriptorProto => quote(fileDescriptorProto.package))
+        .map(fileDescriptorProto => {
+          assertDefined(fileDescriptorProto.package);
+          return quote(fileDescriptorProto.package);
+        })
         .filter((value, index, array) => array.indexOf(value) === index)
         .join(',');
       const protoPaths = fileDescriptorProtos
@@ -118,6 +125,6 @@ export function generateBackendMicroserviceOptionsFiles(
           };
         }
       `;
-      return createCodeGeneratorResponseFileForBackendMicroserviceOptions(service, codeContent);
+      return createGeneratedFileForBackendMicroserviceOptions(service, codeContent);
     });
 }
