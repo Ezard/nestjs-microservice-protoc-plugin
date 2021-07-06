@@ -37,7 +37,7 @@ export async function createGeneratedFileForBackendMicroserviceOptions(
   codeContent: Code,
 ): Promise<GeneratedFile> {
   const fullPath = normalize(join(service.generatedDir, 'backend-microservice-options.ts'));
-  const content = prefixDisableLinter(await codeContent.toStringWithImports({ path: fullPath }));
+  const content = prefixDisableLinter(await codeContent.toStringWithImports());
   return {
     getFilename: () => fullPath,
     getContent: () => content,
