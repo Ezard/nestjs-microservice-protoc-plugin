@@ -31,8 +31,8 @@ describe('utils', () => {
     rmSync(rootTestDir, { recursive: true, force: true });
   });
 
-  describe('createCodeGeneratorResponseFile', () => {
-    const testDir = join(rootTestDir, 'createCodeGeneratorResponseFile');
+  describe('createGeneratedFile', () => {
+    const testDir = join(rootTestDir, 'createGeneratedFile');
     const fileName = 'foo.proto';
 
     it.each`
@@ -108,8 +108,8 @@ describe('utils', () => {
     );
   });
 
-  describe('createCodeGeneratorResponseFileForBackendMicroserviceOptions', () => {
-    const testDir = join(rootTestDir, 'createCodeGeneratorResponseFileForBackendMicroserviceOptions');
+  describe('createGeneratedFileForBackendMicroserviceOptions', () => {
+    const testDir = join(rootTestDir, 'createGeneratedFileForBackendMicroserviceOptions');
 
     it("should generate the file in the service's 'generated' directory", async () => {
       const service = new Service(join(testDir, 'foo'));
@@ -134,7 +134,7 @@ describe('utils', () => {
       const codeA = code`class Foo {}`;
       const codeB = code`const bar: ${imp('Observable@rxjs')}`;
 
-      const result = await combineCode(codeA, codeB).toStringWithImports('.');
+      const result = await combineCode(codeA, codeB).toStringWithImports();
 
       const expected = trimPadding(`
         import { Observable } from 'rxjs';

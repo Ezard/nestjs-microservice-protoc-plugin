@@ -25,7 +25,7 @@ export async function createGeneratedFile(
   const fileName = `${fileDescriptorProto.name.replace('.proto', '')}.${type}.ts`;
   const relativePath = normalize(join(directory, fileName));
   const fullPath = normalize(join(service.generatedDir, relativePath));
-  const content = prefixDisableLinter(await codeContent.toStringWithImports(relativePath));
+  const content = prefixDisableLinter(await codeContent.toStringWithImports({ path: relativePath }));
   return {
     getFilename: () => fullPath,
     getContent: () => content,
