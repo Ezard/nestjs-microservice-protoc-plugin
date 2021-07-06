@@ -134,7 +134,7 @@ describe('utils', () => {
       const codeA = code`class Foo {}`;
       const codeB = code`const bar: ${imp('Observable@rxjs')}`;
 
-      const result = await combineCode(codeA, codeB).toStringWithImports('.');
+      const result = await combineCode(codeA, codeB).toStringWithImports();
 
       const expected = trimPadding(`
         import { Observable } from 'rxjs';
