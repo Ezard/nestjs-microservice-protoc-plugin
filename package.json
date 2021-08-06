@@ -18,7 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@protobuf-ts/plugin-framework": "^1.0.13",
+    "@protobuf-ts/plugin-framework": "^2.0.0",
     "protobufjs": "^6.10.1",
     "sequency": "^0.19.2",
     "ts-poet": "^4.0.0"
