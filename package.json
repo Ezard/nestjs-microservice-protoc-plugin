@@ -24,9 +24,9 @@
     "ts-poet": "^4.0.0"
   },
   "devDependencies": {
-    "@stryker-mutator/core": "5.2.3",
-    "@stryker-mutator/jest-runner": "5.2.3",
-    "@stryker-mutator/typescript-checker": "5.2.3",
+    "@stryker-mutator/core": "5.3.0",
+    "@stryker-mutator/jest-runner": "5.3.0",
+    "@stryker-mutator/typescript-checker": "5.3.0",
     "@types/jest": "26.0.24",
     "@types/node": "14.17.9",
     "@typescript-eslint/eslint-plugin": "4.29.0",
